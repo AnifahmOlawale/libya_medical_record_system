@@ -1,0 +1,11 @@
+{
+  "@@locale": "ar",
+  "helloWorld": "مرحبا بالعالم",
+  "@helloWorld": {
+    "description": "Hello World!"
+  },
+  "appName": "نظام السجلات الطبية في ليبيا",
+  "@appName": {
+    "description": "Libya Medical Record System"
+  }
+}
