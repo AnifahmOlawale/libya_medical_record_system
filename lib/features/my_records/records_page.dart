@@ -25,7 +25,7 @@ class _RecordCardData {
 
 // Order matches the confirmed records list. Kept as a top-level const
 // so it's easy to reorder or edit without touching build logic.
-const _records = [
+final _records = [
   _RecordCardData(
     icon: FontAwesomeIcons.idCardClip,
     title: 'Medical Information',
@@ -110,7 +110,7 @@ class RecordsPage extends StatelessWidget {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
+          SliverPageHeader(
             title: 'Medical Records',
             icon: FontAwesomeIcons.fileMedical,
           ),

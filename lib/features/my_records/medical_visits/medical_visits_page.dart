@@ -176,7 +176,7 @@ class MedicalVisitsPage extends StatelessWidget {
                     _buildDetailRow(
                       'Doctor',
                       visit.doctorName,
-                      icon: FontAwesomeIcons.userMd,
+                      icon: FontAwesomeIcons.userDoctor,
                     ),
                     const SizedBox(height: 16),
                     _buildDetailRow(

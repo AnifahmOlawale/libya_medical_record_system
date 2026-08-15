@@ -61,9 +61,9 @@ class _MedicalInfoFormState extends State<MedicalInfoForm> {
     _selectedPregnancyStatus = data.pregnancyStatus;
   }
 
-  bool get _isFormValid {
-    return _formKey.currentState?.validate() ?? false;
-  }
+  // bool get _isFormValid {
+  //   return _formKey.currentState?.validate() ?? false;
+  // }
 
   Future<void> _pickBloodDonationDate() async {
     final now = DateTime.now();
@@ -145,9 +145,7 @@ class _MedicalInfoFormState extends State<MedicalInfoForm> {
                 controller: heightController,
                 keyboardType: TextInputType.number,
                 validator: FormValidators.required,
-                decoration: _fieldDecoration(
-                  hint: 'Enter your height in cm',
-                ),
+                decoration: _fieldDecoration(hint: 'Enter your height in cm'),
               ),
               const SizedBox(height: 20),
               _fieldLabel('Weight (kg)'),
@@ -155,9 +153,7 @@ class _MedicalInfoFormState extends State<MedicalInfoForm> {
                 controller: weightController,
                 keyboardType: TextInputType.number,
                 validator: FormValidators.required,
-                decoration: _fieldDecoration(
-                  hint: 'Enter your weight in kg',
-                ),
+                decoration: _fieldDecoration(hint: 'Enter your weight in kg'),
               ),
               const SizedBox(height: 20),
               _fieldLabel('Last Blood Donation Date (Optional)'),
@@ -175,9 +171,7 @@ class _MedicalInfoFormState extends State<MedicalInfoForm> {
                 initialValue: _selectedBloodType,
                 decoration: _fieldDecoration(hint: 'Select blood type'),
                 items: bloodTypeOptions
-                    .map(
-                      (e) => DropdownMenuItem(value: e, child: Text(e)),
-                    )
+                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                     .toList(),
                 onChanged: (value) {
                   if (value == null) return;
@@ -191,9 +185,7 @@ class _MedicalInfoFormState extends State<MedicalInfoForm> {
                 initialValue: _selectedGenotype,
                 decoration: _fieldDecoration(hint: 'Select genotype'),
                 items: genotypeOptions
-                    .map(
-                      (e) => DropdownMenuItem(value: e, child: Text(e)),
-                    )
+                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                     .toList(),
                 onChanged: (value) {
                   if (value == null) return;
@@ -207,9 +199,7 @@ class _MedicalInfoFormState extends State<MedicalInfoForm> {
                 initialValue: _selectedGender,
                 decoration: _fieldDecoration(hint: 'Select gender'),
                 items: genderOptions
-                    .map(
-                      (e) => DropdownMenuItem(value: e, child: Text(e)),
-                    )
+                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                     .toList(),
                 onChanged: (value) {
                   if (value == null) return;
@@ -221,13 +211,9 @@ class _MedicalInfoFormState extends State<MedicalInfoForm> {
               _fieldLabel('Marital Status'),
               DropdownButtonFormField<String>(
                 initialValue: _selectedMaritalStatus,
-                decoration: _fieldDecoration(
-                  hint: 'Select marital status',
-                ),
+                decoration: _fieldDecoration(hint: 'Select marital status'),
                 items: maritalStatusOptions
-                    .map(
-                      (e) => DropdownMenuItem(value: e, child: Text(e)),
-                    )
+                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                     .toList(),
                 onChanged: (value) {
                   if (value == null) return;
@@ -239,13 +225,9 @@ class _MedicalInfoFormState extends State<MedicalInfoForm> {
               _fieldLabel('Disability Status'),
               DropdownButtonFormField<String>(
                 initialValue: _selectedDisabilityStatus,
-                decoration: _fieldDecoration(
-                  hint: 'Select disability status',
-                ),
+                decoration: _fieldDecoration(hint: 'Select disability status'),
                 items: disabilityStatusOptions
-                    .map(
-                      (e) => DropdownMenuItem(value: e, child: Text(e)),
-                    )
+                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                     .toList(),
                 onChanged: (value) {
                   if (value == null) return;
@@ -257,13 +239,9 @@ class _MedicalInfoFormState extends State<MedicalInfoForm> {
               _fieldLabel('Smoking Status'),
               DropdownButtonFormField<String>(
                 initialValue: _selectedSmokingStatus,
-                decoration: _fieldDecoration(
-                  hint: 'Select smoking status',
-                ),
+                decoration: _fieldDecoration(hint: 'Select smoking status'),
                 items: smokingStatusOptions
-                    .map(
-                      (e) => DropdownMenuItem(value: e, child: Text(e)),
-                    )
+                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                     .toList(),
                 onChanged: (value) {
                   if (value == null) return;
@@ -275,13 +253,9 @@ class _MedicalInfoFormState extends State<MedicalInfoForm> {
               _fieldLabel('Alcohol Use'),
               DropdownButtonFormField<String>(
                 initialValue: _selectedAlcoholUse,
-                decoration: _fieldDecoration(
-                  hint: 'Select alcohol use',
-                ),
+                decoration: _fieldDecoration(hint: 'Select alcohol use'),
                 items: alcoholUseOptions
-                    .map(
-                      (e) => DropdownMenuItem(value: e, child: Text(e)),
-                    )
+                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                     .toList(),
                 onChanged: (value) {
                   if (value == null) return;
@@ -293,13 +267,9 @@ class _MedicalInfoFormState extends State<MedicalInfoForm> {
               _fieldLabel('Pregnancy Status'),
               DropdownButtonFormField<String>(
                 initialValue: _selectedPregnancyStatus,
-                decoration: _fieldDecoration(
-                  hint: 'Select pregnancy status',
-                ),
+                decoration: _fieldDecoration(hint: 'Select pregnancy status'),
                 items: pregnancyStatusOptions
-                    .map(
-                      (e) => DropdownMenuItem(value: e, child: Text(e)),
-                    )
+                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                     .toList(),
                 onChanged: (value) {
                   if (value == null) return;

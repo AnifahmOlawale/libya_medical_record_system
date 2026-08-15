@@ -1,13 +1,18 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
+import 'package:libya_medical_record_system/core/router/app_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/app_primary_button.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
+import 'package:libya_medical_record_system/data/models/demo_data.dart';
+import 'package:libya_medical_record_system/data/models/institution_model.dart';
 import 'package:libya_medical_record_system/data/models/professional_info_data.dart';
 import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
+import 'package:libya_medical_record_system/data/models/user_workplace.dart';
 import 'package:libya_medical_record_system/data/models/working_time_data.dart';
-
-import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 
 class ExpertDetailPage extends StatelessWidget {
   const ExpertDetailPage({super.key, required this.expert});
@@ -24,31 +29,76 @@ class ExpertDetailPage extends StatelessWidget {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          SliverPageHeader(
-            title: personal.fullNameEnglish,
+          SliverAppBar(
             expandedHeight: 250,
-            hideTitleOnWeb: true,
-            centerExtraOnWeb: true,
-            extra: Hero(
-              tag: 'expert_${personal.fullNameEnglish}',
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: kIsWeb
-                      ? AppColors.primary.withValues(alpha: 0.1)
-                      : Colors.white.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: kIsWeb ? AppColors.primary : Colors.white,
-                    width: 4,
+            pinned: !kIsWeb,
+            stretch: true,
+            backgroundColor: AppColors.primary,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            leading: kIsWeb
+                ? null
+                : IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                    ),
+                    onPressed: () => context.pop(),
                   ),
-                ),
-                child: Icon(
-                  Icons.person_rounded,
-                  size: 80,
-                  color: kIsWeb ? AppColors.primary : Colors.white,
-                ),
+            flexibleSpace: FlexibleSpaceBar(
+              stretchModes: const [StretchMode.blurBackground],
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [AppColors.primaryDark, AppColors.primary],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: -50,
+                    right: -50,
+                    child: CircleAvatar(
+                      radius: 120,
+                      backgroundColor: Colors.white.withValues(alpha: 0.05),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 40,
+                    left: -30,
+                    child: CircleAvatar(
+                      radius: 80,
+                      backgroundColor: Colors.white.withValues(alpha: 0.03),
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 24),
+                      Hero(
+                        tag: 'expert_${personal.fullNameEnglish}',
+                        child: const CircleAvatar(
+                          backgroundColor: Colors.white70,
+                          radius: 80,
+                          child: CircleAvatar(
+                            radius: 75,
+                            backgroundColor: AppColors.primary,
+                            child: FaIcon(
+                              FontAwesomeIcons.userDoctor,
+                              size: 80,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
@@ -65,12 +115,14 @@ class ExpertDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   if (professional.weeklySchedule != null) ...[
-                    _buildAvailabilitySection(professional.weeklySchedule!),
+                    _buildWorkSchedule(professional.weeklySchedule!),
                     const SizedBox(height: 24),
                   ],
-                  _buildProfessionalCredentials(professional),
-                  const SizedBox(height: 32),
-                  _buildContactSection(professional),
+                  if (expert.workplaces.isNotEmpty) ...[
+                    _buildWorkplacesSection(context, expert.workplaces),
+                    const SizedBox(height: 24),
+                  ],
+                  _buildProfessionalExperience(professional),
                   const SizedBox(height: 40),
                   AppPrimaryButton(
                     label: 'Make Appointment',
@@ -88,25 +140,87 @@ class ExpertDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAboutSection(String about) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildWorkplacesSection(
+    BuildContext context,
+    List<UserWorkplace> workplaces,
+  ) {
+    return _buildPremiumCard(
+      title: 'Affiliated Institutions',
+      icon: FontAwesomeIcons.hospital,
+      iconColor: AppColors.primary,
       children: [
-        _buildSectionTitle('About Me'),
-        const SizedBox(height: 12),
-        Text(
-          about,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
-            height: 1.6,
-          ),
-        ),
+        for (int i = 0; i < workplaces.length; i++) ...[
+          _buildAffiliationTile(context, workplaces[i]),
+          if (i < workplaces.length - 1) _buildDivider(),
+        ],
       ],
     );
   }
 
-  Widget _buildAvailabilitySection(WeeklySchedule schedule) {
+  Widget _buildAffiliationTile(BuildContext context, UserWorkplace workplace) {
+    return InkWell(
+      onTap: () {
+        final institution = DemoData.institutions().firstWhere(
+          (inst) => inst.id == workplace.institutionId,
+          orElse:
+              () => InstitutionModel(
+                id: workplace.institutionId,
+                name: workplace.institutionName,
+                type: workplace.institutionType,
+                location: workplace.location,
+                specialization: 'General',
+              ),
+        );
+        context.push(AppRoutes.institutionDetail, extra: institution);
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    workplace.institutionName,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${workplace.position} • ${workplace.location}',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.check_circle_outline,
+              color: AppColors.success,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Divider(
+      height: 1,
+      indent: 20,
+      endIndent: 20,
+      color: Colors.grey.shade100,
+    );
+  }
+
+  Widget _buildWorkSchedule(WeeklySchedule schedule) {
     final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
     final scheduleData = [
       schedule.monday,
       schedule.tuesday,
@@ -117,41 +231,14 @@ class ExpertDetailPage extends StatelessWidget {
       schedule.sunday,
     ];
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.shade100),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const FaIcon(
-                FontAwesomeIcons.calendarCheck,
-                color: AppColors.primary,
-                size: 16,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'Weekly Availability',
-                style: AppTextStyles.headlineSmall.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Column(
+    return _buildPremiumCard(
+      title: 'Availability',
+      icon: FontAwesomeIcons.calendarCheck,
+      iconColor: AppColors.nurseTint,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
             children: List.generate(days.length, (index) {
               final workTime = scheduleData[index];
               return Padding(
@@ -216,56 +303,95 @@ class ExpertDetailPage extends StatelessWidget {
               );
             }),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfessionalCredentials(ProfessionalInfoData professional) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('Professional Details'),
-        const SizedBox(height: 16),
-        _buildInfoTile(
-          FontAwesomeIcons.idCard,
-          'License Number',
-          professional.licenseNumber ?? 'N/A',
-        ),
-        _buildInfoTile(
-          FontAwesomeIcons.briefcase,
-          'Experience',
-          '${professional.yearsOfExperience ?? 0} Years',
-        ),
-        _buildInfoTile(
-          FontAwesomeIcons.hospital,
-          'Institution',
-          professional.institutionName,
-        ),
-        _buildInfoTile(
-          FontAwesomeIcons.mapLocationDot,
-          'Office Address',
-          professional.officeAddress ?? 'N/A',
         ),
       ],
     );
   }
 
-  Widget _buildContactSection(ProfessionalInfoData professional) {
+  Widget _buildPremiumCard({
+    required String title,
+    required dynamic icon,
+    required Color iconColor,
+    required List<Widget> children,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: icon is IconData
+                      ? Icon(icon, color: iconColor, size: 18)
+                      : FaIcon(icon, color: iconColor, size: 18),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: AppTextStyles.headlineSmall.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ...children,
+          const SizedBox(height: 10),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAboutSection(String about) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Contact Information'),
+        _buildSectionTitle('About Me'),
+        const SizedBox(height: 12),
+        Text(
+          about,
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.textSecondary,
+            height: 1.6,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProfessionalExperience(ProfessionalInfoData professional) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('Professional Experience'),
         const SizedBox(height: 16),
         _buildInfoTile(
-          FontAwesomeIcons.envelope,
-          'Work Email',
-          professional.workEmail ?? 'N/A',
+          FontAwesomeIcons.briefcase,
+          'Clinical Experience',
+          '${professional.yearsOfExperience ?? 0} Years',
         ),
         _buildInfoTile(
-          FontAwesomeIcons.phone,
-          'Work Phone',
-          professional.workPhoneNumber ?? 'N/A',
+          FontAwesomeIcons.stethoscope,
+          'Primary Specialization',
+          professional.specialization,
         ),
       ],
     );
@@ -284,7 +410,7 @@ class ExpertDetailPage extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          professional.departmentOrSpecialty ?? professional.professionalRole,
+          professional.specialization,
           style: AppTextStyles.titleMedium.copyWith(
             color: AppColors.primary,
             fontWeight: FontWeight.w700,

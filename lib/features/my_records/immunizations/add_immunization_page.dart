@@ -71,6 +71,7 @@ class _AddImmunizationPageState extends State<AddImmunizationPage> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
+      debugPrint('Saving immunization: Administered on $_dateAdministered, Next due: $_nextDueDate');
       snackBar(
         context: context,
         message: 'Immunization record saved successfully',

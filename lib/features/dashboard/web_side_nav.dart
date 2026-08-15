@@ -1,19 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import 'package:libya_medical_record_system/core/router/app_router.dart';
-import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
-import 'package:libya_medical_record_system/data/providers/dashboard_provider.dart';
 
 /// Persistent side navigation shown on web/wide layouts. Wraps `child`
 /// pages from the ShellRoute — never rebuilt on navigation, so it
 /// never loses its own state (scroll position, expanded sections).
-///
-/// [compact] switches to an icon-only rail (no labels, no sub-lists)
-/// for narrower browser windows. Expansion state for "Records" /
-/// "Profile" is derived from the current URL, not local state, so a
-/// direct link or refresh lands with the right section already open.
 class WebSideNav extends StatelessWidget {
   const WebSideNav({
     super.key,
@@ -26,7 +18,7 @@ class WebSideNav extends StatelessWidget {
   final bool compact;
   final VoidCallback? onExpandRequested;
 
-  static const _recordsSubRoutes = [
+  static final _recordsSubRoutes = [
     ('Medical Information', FontAwesomeIcons.idCardClip, AppRoutes.medicalInfo),
     ('Vitals', FontAwesomeIcons.heartPulse, AppRoutes.vitals),
     ('Allergies', FontAwesomeIcons.triangleExclamation, AppRoutes.allergies),
@@ -41,8 +33,19 @@ class WebSideNav extends StatelessWidget {
     ('Documents', FontAwesomeIcons.fileLines, AppRoutes.documents),
   ];
 
-  static const _profileSubRoutes = [
+  static final _institutionSubRoutes = [
+    ('Join Institution', FontAwesomeIcons.buildingCircleCheck, AppRoutes.joinInstitution),
+    ('Affiliated Institutions', FontAwesomeIcons.hospitalUser, AppRoutes.affiliatedInstitutions),
+    ('Approval Requests', FontAwesomeIcons.clockRotateLeft, AppRoutes.institutionRequests),
+  ];
+
+  static final _profileSubRoutes = [
     ('Edit Profile', FontAwesomeIcons.userPen, AppRoutes.editProfile),
+    (
+      'Professional Experience',
+      FontAwesomeIcons.briefcase,
+      AppRoutes.professionalExperience,
+    ),
     ('Permissions', FontAwesomeIcons.lock, AppRoutes.permissions),
   ];
 
@@ -56,7 +59,6 @@ class WebSideNav extends StatelessWidget {
     }
 
     final theme = Theme.of(context);
-    final userType = context.watch<DashboardProvider>().userType;
 
     return Material(
       color: theme.colorScheme.surface,
@@ -75,13 +77,9 @@ class WebSideNav extends StatelessWidget {
             ),
             _ExpandableSection(
               icon: FontAwesomeIcons.notesMedical,
-              label: 'Records',
-              selected:
-                  currentLocation.startsWith('/records') ||
-                  currentLocation == AppRoutes.records,
-              expanded:
-                  currentLocation.startsWith('/records') ||
-                  currentLocation == AppRoutes.records,
+              label: 'My Records',
+              selected: currentLocation == AppRoutes.records || currentLocation.startsWith('/records'),
+              expanded: currentLocation == AppRoutes.records || currentLocation.startsWith('/records'),
               children: [
                 for (final (label, icon, route) in _recordsSubRoutes)
                   _SubTile(
@@ -94,22 +92,47 @@ class WebSideNav extends StatelessWidget {
             ),
             _NavTile(
               icon: FontAwesomeIcons.userDoctor,
-              label: 'Experts',
+              label: 'Medical Experts',
               selected: currentLocation == AppRoutes.experts,
               onTap: () => context.go(AppRoutes.experts),
             ),
             _ExpandableSection(
+              icon: FontAwesomeIcons.hospital,
+              label: 'Medical Institutions',
+              selected: 
+                  currentLocation == AppRoutes.joinInstitution || 
+                  currentLocation == AppRoutes.affiliatedInstitutions || 
+                  currentLocation == AppRoutes.institutionRequests ||
+                  currentLocation.startsWith(AppRoutes.joinInstitution),
+              expanded: 
+                  currentLocation == AppRoutes.joinInstitution || 
+                  currentLocation == AppRoutes.affiliatedInstitutions || 
+                  currentLocation == AppRoutes.institutionRequests ||
+                  currentLocation.startsWith(AppRoutes.joinInstitution),
+              children: [
+                for (final (label, icon, route) in _institutionSubRoutes)
+                  _SubTile(
+                    label: label,
+                    icon: icon,
+                    route: route,
+                    currentLocation: currentLocation,
+                  ),
+              ],
+            ),
+            _ExpandableSection(
               icon: FontAwesomeIcons.user,
-              label: 'Profile',
-              selected: currentLocation == AppRoutes.profile,
-              expanded: currentLocation == AppRoutes.profile,
+              label: 'Account',
+              selected:
+                  currentLocation == AppRoutes.profile ||
+                  currentLocation.startsWith('/profile'),
+              expanded:
+                  currentLocation == AppRoutes.profile ||
+                  currentLocation.startsWith('/profile'),
               children: [
                 _SubTile(
                   label: 'My Profile',
                   icon: FontAwesomeIcons.circleUser,
-                  route: userType == UserType.healthcareProfessional
-                      ? AppRoutes.medicalStaffProfile
-                      : AppRoutes.usersProfile,
+                  route: AppRoutes.usersProfile,
                   currentLocation: currentLocation,
                 ),
                 for (final (label, icon, route) in _profileSubRoutes)
@@ -128,9 +151,6 @@ class WebSideNav extends StatelessWidget {
   }
 }
 
-/// Narrow-window fallback: icons only, no sub-lists. Tapping a
-/// section icon jumps to its landing page (e.g. RecordsPage) rather
-/// than trying to show a flyout — keeps this variant simple.
 class _CompactRail extends StatelessWidget {
   const _CompactRail({required this.currentLocation, this.onExpandRequested});
 
@@ -139,55 +159,63 @@ class _CompactRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userType = context.watch<DashboardProvider>().userType;
-
     return NavigationRail(
       selectedIndex: switch (currentLocation) {
         AppRoutes.home => 0,
         AppRoutes.records => 1,
         AppRoutes.experts => 2,
-        AppRoutes.profile => 3,
+        AppRoutes.joinInstitution || 
+        AppRoutes.affiliatedInstitutions || 
+        AppRoutes.institutionRequests => 3,
+        AppRoutes.profile => 4,
         _ when currentLocation.startsWith('/records') => 1,
-        _ when currentLocation.startsWith('/profile') => 3,
+        _ when currentLocation.startsWith('/profile') => 4,
+        _ when currentLocation.startsWith('/dashboard/join-institution') => 3,
         _ => null,
       },
       onDestinationSelected: (index) {
-        if ((index == 1 || index == 3) && onExpandRequested != null) {
+        if ((index == 1 || index == 3 || index == 4) && onExpandRequested != null) {
           onExpandRequested!();
         } else {
-          context.go(switch (index) {
-            0 => AppRoutes.home,
-            1 => AppRoutes.records,
-            2 => AppRoutes.experts,
-            3 => AppRoutes.profile,
-            _ => AppRoutes.home,
-          });
+          context.go(
+            switch (index) {
+              0 => AppRoutes.home,
+              1 => AppRoutes.records,
+              2 => AppRoutes.experts,
+              3 => AppRoutes.joinInstitution,
+              4 => AppRoutes.profile,
+              _ => AppRoutes.home,
+            },
+          );
         }
       },
       labelType: NavigationRailLabelType.none,
-      destinations: const [
-        NavigationRailDestination(
+      destinations: [
+        const NavigationRailDestination(
           icon: Icon(Icons.grid_view_rounded, size: 18),
           label: Text('Dashboard'),
         ),
-        NavigationRailDestination(
+        const NavigationRailDestination(
           icon: FaIcon(FontAwesomeIcons.notesMedical, size: 18),
           label: Text('Records'),
         ),
-        NavigationRailDestination(
+        const NavigationRailDestination(
           icon: FaIcon(FontAwesomeIcons.userDoctor, size: 18),
-          label: Text('Experts'),
+          label: Text('Medical Experts'),
         ),
-        NavigationRailDestination(
+        const NavigationRailDestination(
+          icon: FaIcon(FontAwesomeIcons.hospital, size: 18),
+          label: Text('Institutions'),
+        ),
+        const NavigationRailDestination(
           icon: FaIcon(FontAwesomeIcons.user, size: 18),
-          label: Text('Profile'),
+          label: Text('Account'),
         ),
       ],
     );
   }
 }
 
-/// A single, non-expandable nav item (e.g. "Home", "Experts").
 class _NavTile extends StatelessWidget {
   const _NavTile({
     required this.icon,
@@ -227,9 +255,6 @@ class _NavTile extends StatelessWidget {
   }
 }
 
-/// A parent item that expands to reveal a sub-list (e.g. "Records" ->
-/// Vitals, Allergies, Medications...). `expanded` is driven by the
-/// current URL, not local toggle state.
 class _ExpandableSection extends StatelessWidget {
   const _ExpandableSection({
     required this.icon,
@@ -255,14 +280,10 @@ class _ExpandableSection extends StatelessWidget {
     return Theme(
       data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
       child: ExpansionTile(
-        // Forces ExpansionTile to re-sync its open/closed state whenever
-        // `expanded` flips (e.g. user navigates via URL bar), instead of
-        // only respecting the value it was first built with.
         key: ValueKey('section-$label-$expanded'),
         initiallyExpanded: expanded,
-        shape: const Border(), // Removes top/bottom border when expanded
-        collapsedShape:
-            const Border(), // Removes top/bottom border when collapsed
+        shape: const Border(),
+        collapsedShape: const Border(),
         iconColor: color,
         textColor: color,
         collapsedIconColor: color,
@@ -285,8 +306,6 @@ class _ExpandableSection extends StatelessWidget {
   }
 }
 
-/// A single sub-item inside an expanded section (e.g. "Vitals" under
-/// "Records").
 class _SubTile extends StatelessWidget {
   const _SubTile({
     required this.label,

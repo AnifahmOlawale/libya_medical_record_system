@@ -67,6 +67,7 @@ class _AddLabTestPageState extends State<AddLabTestPage> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
+      debugPrint('Saving lab test with date: $_testDate');
       final message = _selectedFiles.isEmpty
           ? 'Lab test record saved successfully'
           : 'Lab test record saved with ${_selectedFiles.length} report(s)';

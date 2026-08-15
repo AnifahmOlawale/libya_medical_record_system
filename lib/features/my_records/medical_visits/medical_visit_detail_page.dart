@@ -28,6 +28,17 @@ class MedicalVisitDetailPage extends StatelessWidget {
             title: visit.doctorName,
             icon: FontAwesomeIcons.houseUser,
             expandedHeight: 240,
+            actions: [
+              IconButton(
+                icon: Icon(
+                  Icons.edit_outlined,
+                  color: kIsWeb ? AppColors.primary : Colors.white,
+                ),
+                onPressed: () {
+                  // TODO: Navigate to edit page
+                },
+              ),
+            ],
             extra: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(

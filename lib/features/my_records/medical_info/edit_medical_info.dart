@@ -20,7 +20,7 @@ class _EditMedicalInfoState extends State<EditMedicalInfo> {
   @override
   void initState() {
     super.initState();
-    _medicalInfo = DemoData.patientUser().medicalInfo;
+    _medicalInfo = DemoData.currentUser().medicalInfo;
   }
 
   void _handleMedicalInfoContinue(MedicalInfoData data) {

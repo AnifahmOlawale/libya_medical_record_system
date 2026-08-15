@@ -3,30 +3,25 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
-import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
-import 'package:libya_medical_record_system/data/providers/dashboard_provider.dart';
-import 'package:provider/provider.dart';
 
 class QuickStats extends StatelessWidget {
   const QuickStats({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final userType = context.watch<DashboardProvider>().userType;
-    final userData = userType == UserType.patient
-        ? DemoData.patientUser()
-        : DemoData.professionalUser();
+    final userData = DemoData.currentUser();
 
     // Calculate age from date of birth
     final birthDate = userData.personalInfo?.dateOfBirth;
-    int age = 0;
+    String ageDisplay = 'N/A';
     if (birthDate != null) {
       final now = DateTime.now();
-      age = now.year - birthDate.year;
+      int age = now.year - birthDate.year;
       if (now.month < birthDate.month ||
           (now.month == birthDate.month && now.day < birthDate.day)) {
         age--;
       }
+      ageDisplay = '$age years';
     }
 
     return Column(
@@ -59,7 +54,7 @@ class QuickStats extends StatelessWidget {
                 _buildStatCard(
                   icon: FontAwesomeIcons.cakeCandles,
                   label: 'Age',
-                  value: '$age years',
+                  value: ageDisplay,
                   color: Colors.blue,
                 ),
                 _buildStatCard(
@@ -113,7 +108,7 @@ class QuickStats extends StatelessWidget {
               ),
               child: icon is IconData
                   ? Icon(icon, color: color, size: 20)
-                  : FaIcon(icon, color: color, size: 20),
+                  : FaIcon(icon as dynamic, color: color, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(

@@ -2,49 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/app_primary_button.dart';
-import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
-/// First step of registration — asks whether the person is a
-/// healthcare professional or a patient, since that determines which
-/// registration flow / permissions they get.
-
+/// Optional step of registration — asks whether the person wants to provide
+/// professional healthcare information to be listed as an expert.
 class RoleForm extends StatefulWidget {
   const RoleForm({
     super.key,
-    required this.onUserTypeSelected,
+    required this.onProfessionalStatusChanged,
     required this.onContinue,
-    this.initialUserType,
+    this.isProfessional = false,
   });
 
-  final ValueChanged<UserType> onUserTypeSelected;
+  final ValueChanged<bool> onProfessionalStatusChanged;
   final VoidCallback onContinue;
-
-  /// Restores the previously-made selection when the person navigates
-  /// back to this page — without this, the selection resets to
-  /// nothing every time this page is rebuilt.
-  final UserType? initialUserType;
+  final bool isProfessional;
 
   @override
   State<RoleForm> createState() => _RoleFormState();
 }
 
 class _RoleFormState extends State<RoleForm> {
-  UserType? _selectedUserType;
+  bool? _isProfessional;
 
   @override
   void initState() {
     super.initState();
-    _selectedUserType = widget.initialUserType;
-  }
-
-  void _handleUserTypeSelected() {
-    if (_selectedUserType != null) {
-      widget.onUserTypeSelected(_selectedUserType!);
-    }
+    _isProfessional = widget.isProfessional;
   }
 
   void _handleContinue() {
-    if (_selectedUserType != null) {
+    if (_isProfessional != null) {
       widget.onContinue();
     }
   }
@@ -57,7 +44,6 @@ class _RoleFormState extends State<RoleForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 40),
-
           Text(
             'Are you a healthcare\nprofessional?',
             textAlign: TextAlign.center,
@@ -67,55 +53,43 @@ class _RoleFormState extends State<RoleForm> {
               height: 1.2,
             ),
           ),
-
           const SizedBox(height: 12),
-
           Text(
-            'This helps us give you the right experience.',
+            'Providing your professional details allows you to be verified and listed as an expert.',
             textAlign: TextAlign.center,
             style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.textSecondary,
               height: 1.5,
             ),
           ),
-
           const SizedBox(height: 40),
-
-          _UserTypeOption(
+          _StatusOption(
             icon: Icons.medical_services_outlined,
             title: "Yes, I'm a healthcare professional",
             subtitle:
-                'Doctors, pharmacists, lab, radiology, and other licensed providers.',
-            value: UserType.healthcareProfessional,
-            groupValue: _selectedUserType,
-            onSelected: (value) => setState(() {
-              _selectedUserType = value;
-              _handleUserTypeSelected();
+                'Register as a doctor, nurse, pharmacist, or other licensed provider.',
+            isSelected: _isProfessional == true,
+            onSelected: () => setState(() {
+              _isProfessional = true;
+              widget.onProfessionalStatusChanged(true);
             }),
           ),
-
           const SizedBox(height: 16),
-
-          _UserTypeOption(
+          _StatusOption(
             icon: Icons.person_outline_rounded,
-            title: "No, I'm using this as a patient",
+            title: "No, I'm just a patient",
             subtitle: 'Manage and share your own medical records.',
-            value: UserType.patient,
-            groupValue: _selectedUserType,
-            onSelected: (value) => setState(() {
-              _selectedUserType = value;
-              _handleUserTypeSelected();
+            isSelected: _isProfessional == false,
+            onSelected: () => setState(() {
+              _isProfessional = false;
+              widget.onProfessionalStatusChanged(false);
             }),
           ),
-
           const Spacer(),
-
           AppPrimaryButton(
             label: 'Continue',
-            onPressed: _selectedUserType != null ? _handleContinue : null,
-            inverted: false,
+            onPressed: _isProfessional != null ? _handleContinue : null,
           ),
-
           const SizedBox(height: 12),
         ],
       ),
@@ -123,43 +97,35 @@ class _RoleFormState extends State<RoleForm> {
   }
 }
 
-/// A single selectable user-type card — replaces the plain
-/// [RadioListTile] with something that matches the app's card-based
-/// visual language (selection shown via border + background tint +
-/// check icon, rather than a bare radio dot).
-class _UserTypeOption extends StatelessWidget {
-  const _UserTypeOption({
+class _StatusOption extends StatelessWidget {
+  const _StatusOption({
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.value,
-    required this.groupValue,
+    required this.isSelected,
     required this.onSelected,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
-  final UserType value;
-  final UserType? groupValue;
-  final ValueChanged<UserType> onSelected;
-
-  bool get _selected => value == groupValue;
+  final bool isSelected;
+  final VoidCallback onSelected;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => onSelected(value),
+      onTap: onSelected,
       borderRadius: BorderRadius.circular(16),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: _selected ? AppColors.primarySurface : AppColors.surface,
+          color: isSelected ? AppColors.primarySurface : AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: _selected ? AppColors.primary : AppColors.divider,
-            width: _selected ? 2 : 1,
+            color: isSelected ? AppColors.primary : AppColors.divider,
+            width: isSelected ? 2 : 1,
           ),
         ),
         child: Row(
@@ -167,13 +133,13 @@ class _UserTypeOption extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: (_selected ? AppColors.primary : AppColors.textSecondary)
+                color: (isSelected ? AppColors.primary : AppColors.textSecondary)
                     .withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
-                color: _selected ? AppColors.primary : AppColors.textSecondary,
+                color: isSelected ? AppColors.primary : AppColors.textSecondary,
               ),
             ),
             const SizedBox(width: 14),
@@ -200,8 +166,8 @@ class _UserTypeOption extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Icon(
-              _selected ? Icons.check_circle_rounded : Icons.circle_outlined,
-              color: _selected ? AppColors.primary : AppColors.textDisabled,
+              isSelected ? Icons.check_circle_rounded : Icons.circle_outlined,
+              color: isSelected ? AppColors.primary : AppColors.textDisabled,
             ),
           ],
         ),

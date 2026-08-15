@@ -24,11 +24,13 @@ class PersonalInfoForm extends StatefulWidget {
 
 class _PersonalInfoFormState extends State<PersonalInfoForm> {
   final nationalIdController = TextEditingController();
+  final passportController = TextEditingController();
   final fullNameArabicController = TextEditingController();
   final fullNameEnglishController = TextEditingController();
   final dateOfBirthController = TextEditingController();
   final placeOfBirthController = TextEditingController();
   final occupationController = TextEditingController();
+  final yearsOfExperienceController = TextEditingController();
   final primaryPhoneController = TextEditingController();
   final secondaryPhoneController = TextEditingController();
   final emailController = TextEditingController();
@@ -48,10 +50,12 @@ class _PersonalInfoFormState extends State<PersonalInfoForm> {
 
   void _loadInitialData(PersonalInfoData data) {
     nationalIdController.text = data.nationalId;
+    passportController.text = data.passportNumber ?? '';
     fullNameArabicController.text = data.fullNameArabic;
     fullNameEnglishController.text = data.fullNameEnglish;
     placeOfBirthController.text = data.placeOfBirth ?? '';
     occupationController.text = data.occupation;
+    yearsOfExperienceController.text = data.yearsOfExperience?.toString() ?? '';
     primaryPhoneController.text = data.primaryPhoneNumber;
     secondaryPhoneController.text = data.secondaryPhoneNumber ?? '';
     emailController.text = data.email;
@@ -62,9 +66,9 @@ class _PersonalInfoFormState extends State<PersonalInfoForm> {
     _selectedDate = data.dateOfBirth;
   }
 
-  bool get _isFormValid {
-    return _formKey.currentState?.validate() ?? false;
-  }
+  // bool get _isFormValid {
+  //   return _formKey.currentState?.validate() ?? false;
+  // }
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
@@ -95,6 +99,9 @@ class _PersonalInfoFormState extends State<PersonalInfoForm> {
     widget.onContinue(
       PersonalInfoData(
         nationalId: nationalIdController.text.trim(),
+        passportNumber: passportController.text.trim().isEmpty
+            ? null
+            : passportController.text.trim(),
         fullNameArabic: fullNameArabicController.text.trim(),
         fullNameEnglish: fullNameEnglishController.text.trim(),
         placeOfBirth: placeOfBirthController.text.trim().isEmpty
@@ -102,6 +109,9 @@ class _PersonalInfoFormState extends State<PersonalInfoForm> {
             : placeOfBirthController.text.trim(),
 
         occupation: occupationController.text.trim(),
+        yearsOfExperience: int.tryParse(
+          yearsOfExperienceController.text.trim(),
+        ),
         primaryPhoneNumber: primaryPhoneController.text.trim(),
         secondaryPhoneNumber: secondaryPhoneController.text.trim().isEmpty
             ? null
@@ -117,10 +127,12 @@ class _PersonalInfoFormState extends State<PersonalInfoForm> {
   @override
   void dispose() {
     nationalIdController.dispose();
+    passportController.dispose();
     fullNameArabicController.dispose();
     fullNameEnglishController.dispose();
     placeOfBirthController.dispose();
     occupationController.dispose();
+    yearsOfExperienceController.dispose();
     primaryPhoneController.dispose();
     secondaryPhoneController.dispose();
     emailController.dispose();
@@ -158,12 +170,18 @@ class _PersonalInfoFormState extends State<PersonalInfoForm> {
               _fieldLabel('National ID'),
               TextFormField(
                 controller: nationalIdController,
-                validator: (value) => FormValidators.required(
-                  value,
-                  fieldName: 'National ID',
-                ),
+                validator: (value) =>
+                    FormValidators.required(value, fieldName: 'National ID'),
                 decoration: _fieldDecoration(
                   hint: 'Enter your national ID number',
+                ),
+              ),
+              const SizedBox(height: 20),
+              _fieldLabel('Passport Number (Optional)'),
+              TextFormField(
+                controller: passportController,
+                decoration: _fieldDecoration(
+                  hint: 'Enter your passport number',
                 ),
               ),
               const SizedBox(height: 20),
@@ -198,25 +216,28 @@ class _PersonalInfoFormState extends State<PersonalInfoForm> {
                 readOnly: true,
                 onTap: _pickDate,
                 validator: FormValidators.required,
-                decoration: _fieldDecoration(
-                  hint: 'Select your date of birth',
-                ),
+                decoration: _fieldDecoration(hint: 'Select your date of birth'),
               ),
               const SizedBox(height: 20),
               _fieldLabel('Place of Birth'),
               TextFormField(
                 controller: placeOfBirthController,
-                decoration: _fieldDecoration(
-                  hint: 'Enter your place of birth',
-                ),
+                decoration: _fieldDecoration(hint: 'Enter your place of birth'),
               ),
               const SizedBox(height: 20),
               _fieldLabel('Occupation'),
               TextFormField(
                 controller: occupationController,
                 validator: FormValidators.required,
+                decoration: _fieldDecoration(hint: 'Enter your occupation'),
+              ),
+              const SizedBox(height: 20),
+              _fieldLabel('Working years experience (Optional)'),
+              TextFormField(
+                controller: yearsOfExperienceController,
+                keyboardType: TextInputType.number,
                 decoration: _fieldDecoration(
-                  hint: 'Enter your occupation',
+                  hint: 'Enter your years of experience',
                 ),
               ),
               const SizedBox(height: 20),
@@ -244,21 +265,15 @@ class _PersonalInfoFormState extends State<PersonalInfoForm> {
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
                 validator: FormValidators.email,
-                decoration: _fieldDecoration(
-                  hint: 'Enter your email address',
-                ),
+                decoration: _fieldDecoration(hint: 'Enter your email address'),
               ),
               const SizedBox(height: 20),
               _fieldLabel('Municipality'),
               DropdownButtonFormField<String>(
                 initialValue: _selectedMunicipality,
-                decoration: _fieldDecoration(
-                  hint: 'Select your municipality',
-                ),
+                decoration: _fieldDecoration(hint: 'Select your municipality'),
                 items: LibyaMunicipalities.all
-                    .map(
-                      (e) => DropdownMenuItem(value: e, child: Text(e)),
-                    )
+                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                     .toList(),
                 onChanged: (value) {
                   if (value == null) return;

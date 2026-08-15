@@ -65,6 +65,7 @@ class _AddMedicalVisitPageState extends State<AddMedicalVisitPage> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
+      debugPrint('Saving medical visit with date: $_visitDate');
       snackBar(
         context: context,
         message: 'Medical visit recorded successfully',

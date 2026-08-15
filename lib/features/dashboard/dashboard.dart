@@ -6,7 +6,7 @@ import 'package:libya_medical_record_system/features/dashboard/app_scaffold_with
 import 'package:provider/provider.dart';
 import 'package:libya_medical_record_system/data/providers/dashboard_provider.dart';
 
-/// Navigation shell for the dashboard tabs. 
+/// Navigation shell for the dashboard tabs.
 /// Wraps the [navigationShell] in the mobile bottom-nav scaffold.
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({
@@ -28,15 +28,19 @@ class DashboardScreen extends StatelessWidget {
           initialLocation: index == navigationShell.currentIndex,
         );
         // Sync provider so other components know current tab
-        context.read<DashboardProvider>().changeNavigationIndex(newIndex: index);
-      },
-      onFabPressed: onChatBotTap ?? () {
-        snackBar(
-          context: context,
-          message: 'Chatbot coming soon',
-          type: SnackTypeEnum.info,
+        context.read<DashboardProvider>().changeNavigationIndex(
+          newIndex: index,
         );
       },
+      onFabPressed:
+          onChatBotTap ??
+          () {
+            snackBar(
+              context: context,
+              message: 'Chatbot coming soon',
+              type: SnackTypeEnum.info,
+            );
+          },
       fabIcon: const FaIcon(FontAwesomeIcons.robot),
       items: const [
         NavItemData(
@@ -45,15 +49,19 @@ class DashboardScreen extends StatelessWidget {
         ),
         NavItemData(
           icon: FaIcon(FontAwesomeIcons.notesMedical, size: 20),
-          label: 'Records',
+          label: 'My Records',
         ),
         NavItemData(
           icon: FaIcon(FontAwesomeIcons.userDoctor, size: 20),
           label: 'Experts',
         ),
         NavItemData(
+          icon: FaIcon(FontAwesomeIcons.hospital, size: 20),
+          label: 'Institutions',
+        ),
+        NavItemData(
           icon: FaIcon(FontAwesomeIcons.user, size: 20),
-          label: 'Profile',
+          label: 'Account',
         ),
       ],
       body: navigationShell,

@@ -64,6 +64,7 @@ class _AddDiagnosisPageState extends State<AddDiagnosisPage> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
+      debugPrint('Saving diagnosis with date: $_diagnosisDate');
       final message = _selectedFiles.isEmpty
           ? 'Diagnosis record saved successfully'
           : 'Diagnosis record saved with ${_selectedFiles.length} document(s)';

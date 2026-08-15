@@ -18,7 +18,7 @@ class _EditProfileInfoState extends State<EditProfileInfo> {
   @override
   void initState() {
     super.initState();
-    _personalInfo = DemoData.patientUser().personalInfo;
+    _personalInfo = DemoData.currentUser().personalInfo;
   }
 
   void _handlePersonalInfoContinue(PersonalInfoData data) {

@@ -6,9 +6,6 @@ import 'package:libya_medical_record_system/core/router/app_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
-import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
-import 'package:libya_medical_record_system/data/providers/dashboard_provider.dart';
-import 'package:provider/provider.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 
 class MedicalInfo extends StatelessWidget {
@@ -16,11 +13,7 @@ class MedicalInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userType = Provider.of<DashboardProvider>(context).userType;
-    final userData = userType == UserType.patient
-        ? DemoData.patientUser()
-        : DemoData.professionalUser();
-
+    final userData = DemoData.currentUser();
     final medicalInfo = userData.medicalInfo;
 
     if (medicalInfo == null) {

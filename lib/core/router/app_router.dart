@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:libya_medical_record_system/core/shared/widgets/ambient_gradient_background.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 import 'package:libya_medical_record_system/data/models/diagnosis_model.dart';
 import 'package:libya_medical_record_system/data/models/radiology_model.dart';
 import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
@@ -15,6 +15,9 @@ import 'package:libya_medical_record_system/features/experts/expert_detail_page.
 import 'package:libya_medical_record_system/features/experts/search_experts_page.dart';
 import 'package:libya_medical_record_system/features/home/clinical_access_entry_page.dart';
 import 'package:libya_medical_record_system/features/home/home_page.dart';
+import 'package:libya_medical_record_system/features/institutions/join_institution_page.dart';
+import 'package:libya_medical_record_system/features/institutions/affiliated_institutions_page.dart';
+import 'package:libya_medical_record_system/features/institutions/institution_requests_page.dart';
 import 'package:libya_medical_record_system/features/my_records/allergies/add_allergy_page.dart';
 import 'package:libya_medical_record_system/features/my_records/allergies/allergies_page.dart';
 import 'package:libya_medical_record_system/features/my_records/allergies/allergy_detail_page.dart';
@@ -61,8 +64,11 @@ import 'package:libya_medical_record_system/data/models/medication_model.dart';
 import 'package:libya_medical_record_system/features/my_records/medical_info/edit_medical_info.dart';
 import 'package:libya_medical_record_system/features/my_records/medical_info/medical_info.dart';
 import 'package:libya_medical_record_system/features/onboarding/onboarding.dart';
-import 'package:libya_medical_record_system/features/profile/edit_profile.dart';
 import 'package:libya_medical_record_system/features/profile/medical_staff_user_profile.dart';
+import 'package:libya_medical_record_system/features/profile/professional_experience_page.dart';
+import 'package:libya_medical_record_system/features/profile/edit_profile.dart';
+import 'package:libya_medical_record_system/features/institutions/institution_detail_page.dart';
+import 'package:libya_medical_record_system/data/models/institution_model.dart';
 import 'package:libya_medical_record_system/features/profile/profile_page.dart';
 import 'package:libya_medical_record_system/features/profile/users_profile.dart';
 import '../../features/splash/splash_screen.dart';
@@ -85,6 +91,11 @@ abstract final class AppRoutes {
   static const profile = '/dashboard/profile';
   static const usersProfile = '/profile/users-profile';
   static const medicalStaffProfile = '/profile/medical-staff-profile';
+  static const professionalExperience = '/profile/professional-experience';
+  static const joinInstitution = '/dashboard/join-institution';
+  static const affiliatedInstitutions = '/dashboard/affiliated-institutions';
+  static const institutionRequests = '/dashboard/institution-requests';
+  static const institutionDetail = '/dashboard/join-institution/detail';
   static const permissions = '/profile/permissions';
   static const editProfile = '/profile/edit-profile-info';
   static const medicalInfo = '/records/medical-info';
@@ -124,9 +135,6 @@ abstract final class AppRoutes {
   static const documentDetail = '/records/documents/detail';
   static const editMedicalInfo = '/records/medical-info/edit-medical-info';
   static const clinicalAccessEntry = '/clinical-access/entry';
-
-  // Add new route paths here as screens are built, e.g.:
-  // static const patientDetail = '/patients/:id';
 }
 
 /// Central GoRouter configuration for Libya Medical Record System.
@@ -138,7 +146,7 @@ abstract final class AppRouter {
 
   static final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: AppRoutes.splash,
+    initialLocation: kIsWeb ? AppRoutes.login : AppRoutes.splash,
     routes: [
       GoRoute(
         path: AppRoutes.splash,
@@ -149,7 +157,7 @@ abstract final class AppRouter {
           ),
           transitionDuration: const Duration(
             milliseconds: 500,
-          ), // Adjust fade duration here
+          ), 
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },
@@ -169,7 +177,7 @@ abstract final class AppRouter {
           onSignUp: () => context.go(AppRoutes.signup),
           onForgotPassword: () => context.go(
             AppRoutes.forgotPassword,
-          ), // add this route when you build that screen
+          ), 
         ),
       ),
 
@@ -203,7 +211,7 @@ abstract final class AppRouter {
       ),
       GoRoute(
         path: AppRoutes.registrationForm,
-        builder: (context, state) => RegistrationForm(),
+        builder: (context, state) => const RegistrationForm(),
       ),
 
       //DASHBOARD
@@ -254,6 +262,22 @@ abstract final class AppRouter {
               StatefulShellBranch(
                 routes: [
                   GoRoute(
+                    path: AppRoutes.joinInstitution,
+                    builder: (context, state) => const JoinInstitutionPage(),
+                  ),
+                  GoRoute(
+                    path: AppRoutes.affiliatedInstitutions,
+                    builder: (context, state) => const AffiliatedInstitutionsPage(),
+                  ),
+                  GoRoute(
+                    path: AppRoutes.institutionRequests,
+                    builder: (context, state) => const InstitutionRequestsPage(),
+                  ),
+                ],
+              ),
+              StatefulShellBranch(
+                routes: [
+                  GoRoute(
                     path: AppRoutes.profile,
                     builder: (context, state) => const ProfilePage(),
                   ),
@@ -273,10 +297,23 @@ abstract final class AppRouter {
           ),
 
           GoRoute(
+            path: AppRoutes.professionalExperience,
+            builder: (context, state) => const ProfessionalExperiencePage(),
+          ),
+
+          GoRoute(
             path: AppRoutes.expertDetail,
             builder: (context, state) {
               final expert = state.extra as UserRegistrationModel;
               return ExpertDetailPage(expert: expert);
+            },
+          ),
+
+          GoRoute(
+            path: AppRoutes.institutionDetail,
+            builder: (context, state) {
+              final institution = state.extra as InstitutionModel;
+              return InstitutionDetailPage(institution: institution);
             },
           ),
 
@@ -503,35 +540,6 @@ abstract final class AppRouter {
           ),
         ],
       ),
-
-      // Add new GoRoute entries here as screens are built.
     ],
-
-    // Once auth state exists, wire up redirect logic here, e.g.:
-    // redirect: (context, state) {
-    //   final isLoggedIn = ...;
-    //   final isAuthRoute = state.matchedLocation.startsWith('/auth');
-    //   if (!isLoggedIn && !isAuthRoute) return AppRoutes.login;
-    //   if (isLoggedIn && isAuthRoute) return AppRoutes.home;
-    //   return null;
-    // },
   );
-}
-
-/// Temporary stand-in so routes are navigable before real screens exist.
-/// Delete once the corresponding real screen is built.
-class _PlaceholderScreen extends StatelessWidget {
-  const _PlaceholderScreen({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      //appBar: AppBar(title: Text(title)),
-      body: AmbientGradientBackground(
-        child: Center(child: Text('$title screen — coming soon')),
-      ),
-    );
-  }
 }

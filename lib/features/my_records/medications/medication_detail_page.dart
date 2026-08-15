@@ -32,6 +32,17 @@ class MedicationDetailPage extends StatelessWidget {
             title: med.medicationName,
             icon: FontAwesomeIcons.pills,
             expandedHeight: 240,
+            actions: [
+              IconButton(
+                icon: Icon(
+                  Icons.edit_outlined,
+                  color: kIsWeb ? AppColors.primary : Colors.white,
+                ),
+                onPressed: () {
+                  // TODO: Navigate to edit page
+                },
+              ),
+            ],
             extra: Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: 12,

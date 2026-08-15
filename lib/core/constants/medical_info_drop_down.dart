@@ -40,16 +40,6 @@ const List<String> pregnancyStatusOptions = [
   'Unknown',
 ];
 
-const List<String> professionalRoleOptions = [
-  'Doctor/Physician',
-  'Nurse',
-  'Pharmacist',
-  'Medical Laboratory Professional',
-  'Radiology',
-  'Dentist',
-  'Others',
-];
-
 const List<String> benefits = [
   'Accessing patient records shared with you',
   'Adding consultations and diagnoses',

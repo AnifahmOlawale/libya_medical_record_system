@@ -12,12 +12,14 @@ class MedicalStaffUserProfile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userData = DemoData.professionalUser();
+    final userData = DemoData.currentUser();
     final personalInfo = userData.personalInfo;
     final professionalInfo = userData.professionalInfo;
 
     if (personalInfo == null || professionalInfo == null) {
-      return const Scaffold(body: Center(child: Text('Profile not found')));
+      return const Scaffold(
+        body: Center(child: Text('Professional profile not found')),
+      );
     }
 
     return Scaffold(
@@ -33,7 +35,8 @@ class MedicalStaffUserProfile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 24),
-                  if (professionalInfo.aboutMe != null) ...[
+                  if (professionalInfo.aboutMe != null &&
+                      professionalInfo.aboutMe!.isNotEmpty) ...[
                     _buildAboutSection(professionalInfo.aboutMe!),
                     const SizedBox(height: 24),
                   ],
@@ -162,8 +165,7 @@ class MedicalStaffUserProfile extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        professionalInfo.departmentOrSpecialty ??
-                            'Medical Staff',
+                        professionalInfo.specialization,
                         style: AppTextStyles.labelMedium.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -182,8 +184,8 @@ class MedicalStaffUserProfile extends StatelessWidget {
                     ),
                     _buildHeaderDivider(),
                     _buildHeaderStat(
-                      'Institution',
-                      professionalInfo.institutionName.split(' ').first,
+                      'Clinical Field',
+                      professionalInfo.specialization.split(' ').first,
                     ),
                   ],
                 ),
@@ -324,29 +326,15 @@ class MedicalStaffUserProfile extends StatelessWidget {
       iconColor: AppColors.doctorTint,
       children: [
         _buildInfoTile(
-          'Medical License',
-          professionalInfo.licenseNumber ?? 'N/A',
-          subtitle: 'Verified by Ministry of Health',
-          trailingIcon: Icons.verified_user_rounded,
-        ),
-        _buildDivider(),
-        _buildInfoTile(
-          'Institution',
-          professionalInfo.institutionName,
-          subtitle: professionalInfo.officeAddress,
-        ),
-        _buildDivider(),
-        _buildInfoTile(
           'Specialization',
-          professionalInfo.departmentOrSpecialty ?? 'General',
-          subtitle:
-              '${professionalInfo.yearsOfExperience ?? 0} years of experience',
+          professionalInfo.specialization,
+          subtitle: 'Certified Professional',
         ),
         _buildDivider(),
         _buildInfoTile(
-          'Work Contact',
-          professionalInfo.workEmail ?? 'N/A',
-          subtitle: professionalInfo.workPhoneNumber,
+          'Experience',
+          '${professionalInfo.yearsOfExperience ?? 0} years',
+          subtitle: 'Total clinical practice',
         ),
       ],
     );
@@ -453,11 +441,6 @@ class MedicalStaffUserProfile extends StatelessWidget {
         _buildInfoTile('Full Name (Ar)', personalInfo.fullNameArabic),
         _buildDivider(),
         _buildInfoTile('Date of Birth', _formatDate(personalInfo.dateOfBirth)),
-        _buildDivider(),
-        _buildInfoTile(
-          'Gender',
-          'Male',
-        ), // hardcoded for demo as it's in medicalInfo usually
         _buildDivider(),
         _buildInfoTile(
           'Place of Birth',

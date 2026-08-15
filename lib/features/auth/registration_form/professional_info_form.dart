@@ -1,7 +1,7 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:libya_medical_record_system/core/constants/medical_info_drop_down.dart';
+import 'package:libya_medical_record_system/core/constants/institution_constants.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/app_primary_button.dart';
@@ -25,16 +25,12 @@ class ProfessionalInfoForm extends StatefulWidget {
 }
 
 class _ProfessionalInfoFormState extends State<ProfessionalInfoForm> {
-  final _licenseController = TextEditingController();
-  final _institutionController = TextEditingController();
-  final _departmentController = TextEditingController();
-  final _workPhoneController = TextEditingController();
-  final _workEmailController = TextEditingController();
-  final _officeAddressController = TextEditingController();
   final _yearsOfExperienceController = TextEditingController();
   final _aboutMeController = TextEditingController();
+  final _otherSpecializationController = TextEditingController();
 
-  String _selectedRole = professionalRoleOptions.first;
+  String _selectedSpecialization =
+      InstitutionConstants.specializationOptions.first;
   PlatformFile? _verificationDocument;
   bool _confirmsLicensed = false;
   bool _agreesToLegitimateUse = false;
@@ -60,15 +56,15 @@ class _ProfessionalInfoFormState extends State<ProfessionalInfoForm> {
   }
 
   void _loadInitialData(ProfessionalInfoData data) {
-    _selectedRole = professionalRoleOptions.contains(data.professionalRole)
-        ? data.professionalRole
-        : professionalRoleOptions.first;
-    _licenseController.text = data.licenseNumber ?? "";
-    _institutionController.text = data.institutionName;
-    _departmentController.text = data.departmentOrSpecialty ?? '';
-    _workPhoneController.text = data.workPhoneNumber ?? '';
-    _workEmailController.text = data.workEmail ?? '';
-    _officeAddressController.text = data.officeAddress ?? '';
+    if (InstitutionConstants.specializationOptions.contains(
+      data.specialization,
+    )) {
+      _selectedSpecialization = data.specialization;
+    } else {
+      _selectedSpecialization = 'Other';
+      _otherSpecializationController.text = data.specialization;
+    }
+
     _yearsOfExperienceController.text =
         data.yearsOfExperience?.toString() ?? '';
     _aboutMeController.text = data.aboutMe ?? '';
@@ -87,14 +83,7 @@ class _ProfessionalInfoFormState extends State<ProfessionalInfoForm> {
         );
   }
 
-  bool get _isOthers => _selectedRole == 'Others';
-
-  bool get _isFormValid {
-    return (_formKey.currentState?.validate() ?? false) &&
-        _confirmsLicensed &&
-        _agreesToLegitimateUse &&
-        _weeklySchedule.isValid;
-  }
+  bool get _isOtherSpecialization => _selectedSpecialization == 'Other';
 
   Future<void> _pickDocument() async {
     final result = await FilePicker.platform.pickFiles(
@@ -107,47 +96,32 @@ class _ProfessionalInfoFormState extends State<ProfessionalInfoForm> {
   }
 
   void _handleContinue() {
-    // TODO: uncomment this when the form is ready and uncomment the
-    // if (!_isFormValid) return;
+    if (_formKey.currentState?.validate() ?? false) {
+      final specialization = _isOtherSpecialization
+          ? _otherSpecializationController.text.trim()
+          : _selectedSpecialization;
 
-    final customRole = _isOthers
-        ? (_selectedRole == 'Others' ? null : _selectedRole)
-        : null;
-    final professionalRole = _isOthers && customRole != null
-        ? customRole
-        : _selectedRole;
-
-    widget.onContinue(
-      ProfessionalInfoData(
-        professionalRole: professionalRole,
-        licenseNumber: _licenseController.text.trim(),
-        institutionName: _institutionController.text.trim(),
-        departmentOrSpecialty: _departmentController.text.trim(),
-        workPhoneNumber: _workPhoneController.text.trim(),
-        workEmail: _workEmailController.text.trim(),
-        verificationDocumentPath: _verificationDocument?.path ?? "",
-        officeAddress: _officeAddressController.text.trim(),
-        yearsOfExperience: int.tryParse(
-          _yearsOfExperienceController.text.trim(),
+      widget.onContinue(
+        ProfessionalInfoData(
+          specialization: specialization,
+          verificationDocumentPath: _verificationDocument?.path ?? "",
+          yearsOfExperience: int.tryParse(
+            _yearsOfExperienceController.text.trim(),
+          ),
+          aboutMe: _aboutMeController.text.trim(),
+          confirmsLicensed: _confirmsLicensed,
+          agreesToLegitimateUse: _agreesToLegitimateUse,
+          weeklySchedule: _weeklySchedule,
         ),
-        aboutMe: _aboutMeController.text.trim(),
-        confirmsLicensed: _confirmsLicensed,
-        agreesToLegitimateUse: _agreesToLegitimateUse,
-        weeklySchedule: _weeklySchedule,
-      ),
-    );
+      );
+    }
   }
 
   @override
   void dispose() {
-    _licenseController.dispose();
-    _institutionController.dispose();
-    _departmentController.dispose();
-    _workPhoneController.dispose();
-    _workEmailController.dispose();
-    _officeAddressController.dispose();
     _yearsOfExperienceController.dispose();
     _aboutMeController.dispose();
+    _otherSpecializationController.dispose();
     super.dispose();
   }
 
@@ -172,19 +146,19 @@ class _ProfessionalInfoFormState extends State<ProfessionalInfoForm> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Tell us about your professional role and workplace.',
+                'Provide details about your specialization and experience.',
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.primary,
                 ),
               ),
               const SizedBox(height: 28),
-              _fieldLabel('Professional role'),
+              _fieldLabel('Specialization'),
               DropdownButtonFormField<String>(
-                initialValue: _selectedRole,
+                initialValue: _selectedSpecialization,
                 decoration: _fieldDecoration(
-                  hint: 'Select your professional role',
+                  hint: 'Select your specialization',
                 ),
-                items: professionalRoleOptions
+                items: InstitutionConstants.specializationOptions
                     .map(
                       (e) => DropdownMenuItem(value: e, child: Text(e)),
                     )
@@ -192,76 +166,26 @@ class _ProfessionalInfoFormState extends State<ProfessionalInfoForm> {
                 onChanged: (value) {
                   if (value == null) return;
                   setState(() {
-                    if (value == 'Others') {
-                      _selectedRole = 'Others';
-                    } else {
-                      _selectedRole = value;
-                    }
+                    _selectedSpecialization = value;
                   });
                 },
                 validator: FormValidators.required,
               ),
-              if (_isOthers) ...[
+              if (_isOtherSpecialization) ...[
                 const SizedBox(height: 16),
-                _fieldLabel('Please specify your role'),
+                _fieldLabel('Please specify your specialization'),
                 TextFormField(
-                  onChanged: (value) {
-                    if (value.trim().isEmpty) {
-                      setState(() => _selectedRole = 'Others');
-                    } else {
-                      setState(() => _selectedRole = value.trim());
-                    }
-                  },
+                  controller: _otherSpecializationController,
                   decoration: _fieldDecoration(
-                    hint: 'Enter your professional role',
+                    hint: 'Enter your specialization',
                   ),
                   validator: FormValidators.required,
                 ),
               ],
               const SizedBox(height: 20),
-              _fieldLabel('License or registration number'),
-              TextFormField(
-                controller: _licenseController,
-                onChanged: (_) => setState(() {}),
-                decoration: _fieldDecoration(
-                  hint: 'Enter your professional license number',
-                ),
-                validator: FormValidators.required,
-              ),
-              const SizedBox(height: 20),
-              _fieldLabel('Institution or hospital name'),
-              TextFormField(
-                controller: _institutionController,
-                onChanged: (_) => setState(() {}),
-                decoration: _fieldDecoration(
-                  hint: 'Enter hospital, clinic, laboratory, or pharmacy name',
-                ),
-                validator: FormValidators.required,
-              ),
-              const SizedBox(height: 20),
-              _fieldLabel('Department or specialty'),
-              TextFormField(
-                controller: _departmentController,
-                decoration: _fieldDecoration(
-                  hint:
-                      'e.g. Internal Medicine, Pediatrics, Pharmacy, Hematology',
-                ),
-              ),
-              const SizedBox(height: 20),
-              _fieldLabel('Office address'),
-              TextFormField(
-                controller: _officeAddressController,
-                onChanged: (_) => setState(() {}),
-                decoration: _fieldDecoration(
-                  hint: 'Enter your office address',
-                ),
-                maxLines: 2,
-              ),
-              const SizedBox(height: 20),
               _fieldLabel('Years of experience'),
               TextFormField(
                 controller: _yearsOfExperienceController,
-                onChanged: (_) => setState(() {}),
                 decoration: _fieldDecoration(
                   hint: 'Enter your years of experience',
                 ),
@@ -271,32 +195,11 @@ class _ProfessionalInfoFormState extends State<ProfessionalInfoForm> {
               _fieldLabel('About me'),
               TextFormField(
                 controller: _aboutMeController,
-                onChanged: (_) => setState(() {}),
                 decoration: _fieldDecoration(
                   hint:
                       'Tell us about yourself, your background, and your professional interests',
                 ),
                 maxLines: 4,
-              ),
-              const SizedBox(height: 20),
-              _fieldLabel('Work phone number'),
-              TextFormField(
-                controller: _workPhoneController,
-                keyboardType: TextInputType.phone,
-                decoration: _fieldDecoration(
-                  hint: 'Enter your work phone number',
-                ),
-                validator: FormValidators.validatePhone,
-              ),
-              const SizedBox(height: 20),
-              _fieldLabel('Work email address'),
-              TextFormField(
-                controller: _workEmailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: _fieldDecoration(
-                  hint: 'Enter your work email address',
-                ),
-                validator: FormValidators.email,
               ),
               const SizedBox(height: 28),
               _buildWeeklySchedule(),
@@ -306,45 +209,6 @@ class _ProfessionalInfoFormState extends State<ProfessionalInfoForm> {
               _buildUploadZone(),
               const SizedBox(height: 28),
               const Divider(color: AppColors.divider),
-              const SizedBox(height: 16),
-              Text(
-                'Why we need this information',
-                style: AppTextStyles.titleSmall.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'This helps us verify healthcare professionals and enable features such as:',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.primary,
-                ),
-              ),
-              const SizedBox(height: 10),
-              for (final benefit in benefits)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '•  ',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          benefit,
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               const SizedBox(height: 20),
               _buildCheckbox(
                 value: _confirmsLicensed,
@@ -361,7 +225,7 @@ class _ProfessionalInfoFormState extends State<ProfessionalInfoForm> {
               ),
               const SizedBox(height: 24),
               AppPrimaryButton(
-                label: 'Continue Verification',
+                label: 'Save Professional Details',
                 onPressed: _handleContinue,
               ),
             ],

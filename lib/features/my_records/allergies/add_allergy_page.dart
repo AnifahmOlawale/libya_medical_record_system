@@ -53,6 +53,7 @@ class _AddAllergyPageState extends State<AddAllergyPage> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
+      debugPrint('Saving allergy with onset date: $_onsetDate');
       // TODO: Implementation for saving the allergy
       snackBar(
         context: context,

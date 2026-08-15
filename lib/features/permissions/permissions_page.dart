@@ -6,8 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/snack_bar.dart';
-import 'package:libya_medical_record_system/features/permissions/widgets/generate_token_sheet.dart';
-import 'package:pretty_qr_code/pretty_qr_code.dart';
+import 'package:libya_medical_record_system/features/permissions/widgets/generate_token_dialog.dart';
+import 'package:libya_medical_record_system/features/permissions/widgets/qr_code_display.dart';
 
 class PermissionsPage extends StatelessWidget {
   const PermissionsPage({super.key});
@@ -139,11 +139,10 @@ class PermissionsPage extends StatelessWidget {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
-              showModalBottomSheet(
+              showDialog(
                 context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) => const GenerateTokenSheet(),
+                barrierDismissible: false,
+                builder: (context) => const GenerateTokenDialog(),
               );
             },
             style: ElevatedButton.styleFrom(
@@ -240,7 +239,7 @@ class PermissionsPage extends StatelessWidget {
                     _buildActionButton(
                       icon: FontAwesomeIcons.qrcode,
                       color: AppColors.primary,
-                      onTap: () => _showQRCodeSheet(context, token['code']!),
+                      onTap: () => _showQRCodeDialog(context, token['code']!),
                     ),
                     const SizedBox(width: 8),
                     _buildActionButton(
@@ -379,99 +378,53 @@ class PermissionsPage extends StatelessWidget {
     );
   }
 
-  void _showQRCodeSheet(BuildContext context, String token) {
-    showModalBottomSheet(
+  void _showQRCodeDialog(BuildContext context, String token) {
+    showDialog(
       context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(32),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(10),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+        child: SingleChildScrollView(
+          child: Stack(
+            children: [
+              Container(
+                constraints: const BoxConstraints(maxWidth: 400),
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Access QR Code',
+                      style: AppTextStyles.titleLarge.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Show this to the doctor to grant access',
+                      style: AppTextStyles.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 32),
+                    QrCodeDisplay(token: token),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Access QR Code',
-              style: AppTextStyles.titleLarge.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Show this to the doctor to grant access',
-              style: AppTextStyles.bodySmall,
-            ),
-            const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(32),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 30,
-                    offset: const Offset(0, 12),
-                  ),
-                ],
-              ),
-              child: SizedBox(
-                width: 200,
-                height: 200,
-                child: PrettyQrView.data(
-                  data: token,
-                  decoration: const PrettyQrDecoration(
-                    quietZone: PrettyQrQuietZone.standard,
+              Positioned(
+                right: 12,
+                top: 12,
+                child: IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close_rounded),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.grey.shade100,
+                    iconSize: 20,
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                token,
-                style: AppTextStyles.titleMedium.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: token.length > 10 ? 0 : 2,
-                  fontSize: token.length > 20 ? 12 : 16,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 56),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                elevation: 0,
-              ),
-              child: const Text('Close'),
-            ),
-            const SizedBox(height: 16),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -218,8 +218,9 @@ class _SearchExpertsPageState extends State<SearchExpertsPage> {
                       color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(18),
                     ),
-                    child: const Icon(
-                      Icons.person_rounded,
+                    alignment: Alignment.center,
+                    child: const FaIcon(
+                      FontAwesomeIcons.userDoctor,
                       size: 40,
                       color: AppColors.primary,
                     ),
@@ -248,8 +249,7 @@ class _SearchExpertsPageState extends State<SearchExpertsPage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        professional.departmentOrSpecialty ??
-                            professional.professionalRole,
+                        professional.specialization,
                         style: AppTextStyles.bodySmall.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w700,
@@ -259,14 +259,14 @@ class _SearchExpertsPageState extends State<SearchExpertsPage> {
                       Row(
                         children: [
                           const Icon(
-                            Icons.location_on_rounded,
+                            Icons.calendar_today_rounded,
                             size: 14,
                             color: AppColors.textDisabled,
                           ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              professional.institutionName,
+                              '${professional.yearsOfExperience ?? 0} Years Experience',
                               style: AppTextStyles.bodySmall.copyWith(
                                 fontSize: 10,
                                 color: AppColors.textSecondary,

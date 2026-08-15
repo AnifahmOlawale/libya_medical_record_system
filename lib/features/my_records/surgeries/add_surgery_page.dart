@@ -67,6 +67,7 @@ class _AddSurgeryPageState extends State<AddSurgeryPage> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
+      debugPrint('Saving surgery record with date: $_surgeryDate');
       snackBar(
         context: context,
         message: 'Surgical record saved successfully',

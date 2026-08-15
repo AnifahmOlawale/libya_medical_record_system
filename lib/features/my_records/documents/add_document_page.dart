@@ -60,6 +60,7 @@ class _AddDocumentPageState extends State<AddDocumentPage> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
+      debugPrint('Saving document with issue date: $_issueDate');
       snackBar(
         context: context,
         message: 'Document saved to vault successfully',

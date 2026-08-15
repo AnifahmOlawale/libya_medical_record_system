@@ -1,10 +1,10 @@
 export 'package:flutter/foundation.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 
 class SliverPageHeader extends StatelessWidget {
   const SliverPageHeader({
@@ -127,22 +127,17 @@ class SliverPageHeader extends StatelessWidget {
                 top: -20,
                 child: icon is IconData
                     ? Icon(
-                        icon,
+                        icon as IconData,
                         size: 140,
                         color: Colors.white.withValues(alpha: 0.1),
                       )
                     : FaIcon(
-                        icon,
+                        icon as dynamic,
                         size: 140,
                         color: Colors.white.withValues(alpha: 0.1),
                       ),
               ),
-            if (extra != null)
-              Positioned(
-                bottom: 60,
-                left: 24,
-                child: extra!,
-              ),
+            if (extra != null) Positioned(bottom: 60, left: 24, child: extra!),
           ],
         ),
       ),

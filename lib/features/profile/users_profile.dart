@@ -6,15 +6,18 @@ import 'package:libya_medical_record_system/core/router/app_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
+import 'package:libya_medical_record_system/data/models/user_workplace.dart';
+import 'package:libya_medical_record_system/data/models/working_time_data.dart';
 
 class UsersProfile extends StatelessWidget {
   const UsersProfile({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final userData = DemoData.patientUser();
+    final userData = DemoData.currentUser();
     final personalInfo = userData.personalInfo;
     final medicalInfo = userData.medicalInfo;
+    final professionalInfo = userData.professionalInfo;
 
     if (personalInfo == null) {
       return const Scaffold(body: Center(child: Text('Profile not found')));
@@ -33,12 +36,24 @@ class UsersProfile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 24),
+                  _buildPersonalInfoSection(personalInfo, medicalInfo),
+                  const SizedBox(height: 24),
+                  if (professionalInfo != null) ...[
+                    _buildProfessionalInfoSection(professionalInfo),
+                    const SizedBox(height: 24),
+                    if (userData.workplaces.isNotEmpty) ...[
+                      _buildWorkplacesSection(userData.workplaces),
+                      const SizedBox(height: 24),
+                    ],
+                    if (professionalInfo.weeklySchedule != null) ...[
+                      _buildWorkSchedule(professionalInfo.weeklySchedule!),
+                      const SizedBox(height: 24),
+                    ],
+                  ],
                   if (medicalInfo != null) ...[
                     _buildMedicalHighlights(medicalInfo),
                     const SizedBox(height: 24),
                   ],
-                  _buildPersonalInfoSection(personalInfo, medicalInfo),
-                  const SizedBox(height: 24),
                   _buildContactInfoSection(personalInfo),
                   if (medicalInfo != null) ...[
                     const SizedBox(height: 24),
@@ -100,7 +115,6 @@ class UsersProfile extends StatelessWidget {
                 ),
               ),
             ),
-            // Decorative elements
             Positioned(
               top: -40,
               left: -40,
@@ -241,6 +255,152 @@ class UsersProfile extends StatelessWidget {
             trailingIcon: FontAwesomeIcons.droplet,
           ),
         ],
+      ],
+    );
+  }
+
+  Widget _buildProfessionalInfoSection(dynamic professionalInfo) {
+    return _buildPremiumCard(
+      title: 'Professional Experience',
+      icon: FontAwesomeIcons.briefcase,
+      iconColor: AppColors.doctorTint,
+      children: [
+        _buildInfoTile(
+          'Specialization',
+          professionalInfo.specialization,
+          subtitle: 'Verified Healthcare Provider',
+          trailingIcon: Icons.verified_rounded,
+        ),
+        _buildDivider(),
+        _buildInfoTile(
+          'Experience',
+          '${professionalInfo.yearsOfExperience ?? 0} Years',
+          subtitle: 'Clinical Practice Duration',
+        ),
+        if (professionalInfo.aboutMe != null &&
+            professionalInfo.aboutMe.isNotEmpty) ...[
+          _buildDivider(),
+          _buildInfoTile('About', professionalInfo.aboutMe),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildWorkplacesSection(List<UserWorkplace> workplaces) {
+    return _buildPremiumCard(
+      title: 'Affiliated Institutions',
+      icon: FontAwesomeIcons.hospital,
+      iconColor: AppColors.primary,
+      children: [
+        for (int i = 0; i < workplaces.length; i++) ...[
+          _buildInfoTile(
+            workplaces[i].institutionName,
+            workplaces[i].position,
+            subtitle:
+                '${workplaces[i].institutionType} • ${workplaces[i].location}',
+            trailingIcon: switch (workplaces[i].status) {
+              WorkplaceApprovalStatus.approved => Icons.check_circle_outline,
+              WorkplaceApprovalStatus.pending => Icons.access_time,
+              WorkplaceApprovalStatus.rejected => Icons.cancel_outlined,
+            },
+            trailingIconColor: switch (workplaces[i].status) {
+              WorkplaceApprovalStatus.approved => AppColors.success,
+              WorkplaceApprovalStatus.pending => Colors.orange,
+              WorkplaceApprovalStatus.rejected => AppColors.error,
+            },
+          ),
+          if (i < workplaces.length - 1) _buildDivider(),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildWorkSchedule(WeeklySchedule schedule) {
+    final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    final scheduleData = [
+      schedule.monday,
+      schedule.tuesday,
+      schedule.wednesday,
+      schedule.thursday,
+      schedule.friday,
+      schedule.saturday,
+      schedule.sunday,
+    ];
+
+    return _buildPremiumCard(
+      title: 'Availability',
+      icon: FontAwesomeIcons.calendarCheck,
+      iconColor: AppColors.nurseTint,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: List.generate(days.length, (index) {
+              final workTime = scheduleData[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 50,
+                      child: Text(
+                        days[index],
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: workTime.isActive
+                              ? AppColors.textPrimary
+                              : AppColors.textDisabled,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: workTime.isActive
+                              ? AppColors.primarySurface.withValues(alpha: 0.5)
+                              : Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              workTime.isActive &&
+                                      workTime.startTime != null &&
+                                      workTime.endTime != null
+                                  ? '${_formatTime(workTime.startTime!)} - ${_formatTime(workTime.endTime!)}'
+                                  : 'Not Available',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                fontWeight: workTime.isActive
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                                color: workTime.isActive
+                                    ? AppColors.primaryDark
+                                    : AppColors.textSecondary,
+                              ),
+                            ),
+                            if (workTime.isActive)
+                              const Icon(
+                                Icons.circle,
+                                size: 8,
+                                color: AppColors.success,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ),
+        ),
       ],
     );
   }
@@ -386,6 +546,7 @@ class UsersProfile extends StatelessWidget {
     String value, {
     String? subtitle,
     dynamic trailingIcon,
+    Color? trailingIconColor,
     bool isCopyable = false,
   }) {
     return Padding(
@@ -427,12 +588,16 @@ class UsersProfile extends StatelessWidget {
             trailingIcon is IconData
                 ? Icon(
                     trailingIcon,
-                    color: AppColors.primary.withValues(alpha: 0.6),
+                    color:
+                        trailingIconColor ??
+                        AppColors.primary.withValues(alpha: 0.6),
                     size: 20,
                   )
                 : FaIcon(
                     trailingIcon,
-                    color: AppColors.primary.withValues(alpha: 0.6),
+                    color:
+                        trailingIconColor ??
+                        AppColors.primary.withValues(alpha: 0.6),
                     size: 16,
                   )
           else if (isCopyable)
@@ -457,5 +622,11 @@ class UsersProfile extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  String _formatTime(TimeOfDay time) {
+    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    return '$hour:${time.minute.toString().padLeft(2, '0')} $period';
   }
 }

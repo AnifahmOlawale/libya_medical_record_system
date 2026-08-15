@@ -70,6 +70,7 @@ class _AddRadiologyPageState extends State<AddRadiologyPage> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
+      debugPrint('Saving radiology report with study date: $_studyDate');
       snackBar(
         context: context,
         message: 'Radiology report saved successfully',

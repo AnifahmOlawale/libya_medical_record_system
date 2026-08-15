@@ -65,6 +65,7 @@ class _AddPathologyPageState extends State<AddPathologyPage> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
+      debugPrint('Saving pathology record with collection date: $_collectionDate');
       snackBar(
         context: context,
         message: 'Pathology record saved successfully',

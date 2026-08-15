@@ -5,9 +5,6 @@ import 'package:libya_medical_record_system/core/router/app_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
-import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
-import 'package:libya_medical_record_system/data/providers/dashboard_provider.dart';
-import 'package:provider/provider.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -46,11 +43,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final userType = context.watch<DashboardProvider>().userType;
-    final userData = userType == UserType.patient
-        ? DemoData.patientUser()
-        : DemoData.professionalUser();
-
+    final userData = DemoData.currentUser();
     final personalInfo = userData.personalInfo;
     final String displayName = personalInfo?.fullNameEnglish ?? 'User';
     final String displayEmail = personalInfo?.email ?? 'No email';
@@ -64,11 +57,7 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             // ── Header — avatar + name/email/phone centered inside ──
             GestureDetector(
-              onTap: () => context.push(
-                userType == UserType.healthcareProfessional
-                    ? AppRoutes.medicalStaffProfile
-                    : AppRoutes.usersProfile,
-              ),
+              onTap: () => context.push(AppRoutes.usersProfile),
               child: Container(
                 width: double.infinity,
                 decoration: const BoxDecoration(
@@ -96,12 +85,10 @@ class _ProfilePageState extends State<ProfilePage> {
                               radius: 40,
                               backgroundColor: AppColors.textOnPrimary
                                   .withValues(alpha: 0.2),
-                              child: CircleAvatar(
+                              child: const CircleAvatar(
                                 radius: 38,
                                 child: FaIcon(
-                                  userType == UserType.healthcareProfessional
-                                      ? FontAwesomeIcons.userDoctor
-                                      : FontAwesomeIcons.user,
+                                  FontAwesomeIcons.user,
                                   size: 38,
                                 ),
                               ),
@@ -193,11 +180,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           context,
                           icon: Icons.person_outline,
                           title: 'View Profile',
-                          onTap: () => context.push(
-                            userType == UserType.healthcareProfessional
-                                ? AppRoutes.medicalStaffProfile
-                                : AppRoutes.usersProfile,
-                          ),
+                          onTap: () => context.push(AppRoutes.usersProfile),
                         ),
                         const Divider(height: 1, indent: 56, endIndent: 16),
                         _buildTile(

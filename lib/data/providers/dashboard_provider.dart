@@ -1,21 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
+/// Tracks state for the main dashboard (which tab is active, etc.)
 class DashboardProvider extends ChangeNotifier {
-  int _indexOfNavigation = 0;
-  UserType _userType = UserType.patient;
+  int _currentIndex = 0;
 
-  //GETTERS
-  int get indexOfNavigation => _indexOfNavigation;
-  UserType get userType => _userType;
+  int get currentIndex => _currentIndex;
 
+  /// Update the current active tab index.
   void changeNavigationIndex({required int newIndex}) {
-    _indexOfNavigation = newIndex;
-    notifyListeners();
-  }
-
-  void changeUser({required UserType userType}) {
-    _userType = userType;
+    _currentIndex = newIndex;
     notifyListeners();
   }
 }
