@@ -23,6 +23,7 @@ class WebSideNav extends StatelessWidget {
     ('Vitals', FontAwesomeIcons.heartPulse, AppRoutes.vitals),
     ('Allergies', FontAwesomeIcons.triangleExclamation, AppRoutes.allergies),
     ('Medications', FontAwesomeIcons.pills, AppRoutes.medications),
+    ('Dental Records', FontAwesomeIcons.tooth, AppRoutes.dentalRecords),
     ('Diagnoses', FontAwesomeIcons.stethoscope, AppRoutes.diagnoses),
     ('Lab Tests', FontAwesomeIcons.flaskVial, AppRoutes.labTests),
     ('Medical Visits', FontAwesomeIcons.hospital, AppRoutes.medicalVisits),
@@ -34,9 +35,16 @@ class WebSideNav extends StatelessWidget {
   ];
 
   static final _institutionSubRoutes = [
-    ('Join Institution', FontAwesomeIcons.buildingCircleCheck, AppRoutes.joinInstitution),
-    ('Affiliated Institutions', FontAwesomeIcons.hospitalUser, AppRoutes.affiliatedInstitutions),
-    ('Approval Requests', FontAwesomeIcons.clockRotateLeft, AppRoutes.institutionRequests),
+    (
+      'My Institutions',
+      FontAwesomeIcons.buildingUser,
+      AppRoutes.myInstitutions,
+    ),
+    (
+      'Affiliations',
+      FontAwesomeIcons.handHoldingMedical,
+      AppRoutes.joinInstitution,
+    ),
   ];
 
   static final _profileSubRoutes = [
@@ -75,11 +83,21 @@ class WebSideNav extends StatelessWidget {
                   currentLocation == AppRoutes.dashboard,
               onTap: () => context.go(AppRoutes.home),
             ),
+            _NavTile(
+              icon: FontAwesomeIcons.hospitalUser,
+              label: 'My Patients',
+              selected: currentLocation == AppRoutes.myPatients,
+              onTap: () => context.go(AppRoutes.myPatients),
+            ),
             _ExpandableSection(
               icon: FontAwesomeIcons.notesMedical,
               label: 'My Records',
-              selected: currentLocation == AppRoutes.records || currentLocation.startsWith('/records'),
-              expanded: currentLocation == AppRoutes.records || currentLocation.startsWith('/records'),
+              selected:
+                  currentLocation == AppRoutes.records ||
+                  currentLocation.startsWith('/records'),
+              expanded:
+                  currentLocation == AppRoutes.records ||
+                  currentLocation.startsWith('/records'),
               children: [
                 for (final (label, icon, route) in _recordsSubRoutes)
                   _SubTile(
@@ -99,14 +117,16 @@ class WebSideNav extends StatelessWidget {
             _ExpandableSection(
               icon: FontAwesomeIcons.hospital,
               label: 'Medical Institutions',
-              selected: 
-                  currentLocation == AppRoutes.joinInstitution || 
-                  currentLocation == AppRoutes.affiliatedInstitutions || 
+              selected:
+                  currentLocation == AppRoutes.myInstitutions ||
+                  currentLocation == AppRoutes.joinInstitution ||
+                  currentLocation == AppRoutes.affiliatedInstitutions ||
                   currentLocation == AppRoutes.institutionRequests ||
                   currentLocation.startsWith(AppRoutes.joinInstitution),
-              expanded: 
-                  currentLocation == AppRoutes.joinInstitution || 
-                  currentLocation == AppRoutes.affiliatedInstitutions || 
+              expanded:
+                  currentLocation == AppRoutes.myInstitutions ||
+                  currentLocation == AppRoutes.joinInstitution ||
+                  currentLocation == AppRoutes.affiliatedInstitutions ||
                   currentLocation == AppRoutes.institutionRequests ||
                   currentLocation.startsWith(AppRoutes.joinInstitution),
               children: [
@@ -162,31 +182,34 @@ class _CompactRail extends StatelessWidget {
     return NavigationRail(
       selectedIndex: switch (currentLocation) {
         AppRoutes.home => 0,
-        AppRoutes.records => 1,
-        AppRoutes.experts => 2,
-        AppRoutes.joinInstitution || 
-        AppRoutes.affiliatedInstitutions || 
-        AppRoutes.institutionRequests => 3,
-        AppRoutes.profile => 4,
-        _ when currentLocation.startsWith('/records') => 1,
-        _ when currentLocation.startsWith('/profile') => 4,
-        _ when currentLocation.startsWith('/dashboard/join-institution') => 3,
+        AppRoutes.myPatients => 1,
+        AppRoutes.records => 2,
+        AppRoutes.experts => 3,
+        AppRoutes.myInstitutions ||
+        AppRoutes.joinInstitution ||
+        AppRoutes.affiliatedInstitutions ||
+        AppRoutes.institutionRequests => 4,
+        AppRoutes.profile => 5,
+        _ when currentLocation.startsWith('/records') => 2,
+        _ when currentLocation.startsWith('/profile') => 5,
+        _ when currentLocation.startsWith('/dashboard/my-institutions') => 4,
+        _ when currentLocation.startsWith('/dashboard/join-institution') => 4,
         _ => null,
       },
       onDestinationSelected: (index) {
-        if ((index == 1 || index == 3 || index == 4) && onExpandRequested != null) {
+        if ((index == 2 || index == 4 || index == 5) &&
+            onExpandRequested != null) {
           onExpandRequested!();
         } else {
-          context.go(
-            switch (index) {
-              0 => AppRoutes.home,
-              1 => AppRoutes.records,
-              2 => AppRoutes.experts,
-              3 => AppRoutes.joinInstitution,
-              4 => AppRoutes.profile,
-              _ => AppRoutes.home,
-            },
-          );
+          context.go(switch (index) {
+            0 => AppRoutes.home,
+            1 => AppRoutes.myPatients,
+            2 => AppRoutes.records,
+            3 => AppRoutes.experts,
+            4 => AppRoutes.myInstitutions,
+            5 => AppRoutes.profile,
+            _ => AppRoutes.home,
+          });
         }
       },
       labelType: NavigationRailLabelType.none,
@@ -194,6 +217,10 @@ class _CompactRail extends StatelessWidget {
         const NavigationRailDestination(
           icon: Icon(Icons.grid_view_rounded, size: 18),
           label: Text('Dashboard'),
+        ),
+        const NavigationRailDestination(
+          icon: FaIcon(FontAwesomeIcons.hospitalUser, size: 18),
+          label: Text('My Patients'),
         ),
         const NavigationRailDestination(
           icon: FaIcon(FontAwesomeIcons.notesMedical, size: 18),

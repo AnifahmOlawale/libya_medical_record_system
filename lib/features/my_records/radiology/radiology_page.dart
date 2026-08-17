@@ -5,37 +5,46 @@ import 'package:intl/intl.dart';
 import 'package:libya_medical_record_system/core/router/app_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/empty_state_widget.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
 import 'package:libya_medical_record_system/data/models/radiology_model.dart';
 import 'package:libya_medical_record_system/core/constants/radiology_constants.dart';
-
-import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
 class RadiologyPage extends StatelessWidget {
-  const RadiologyPage({super.key});
+  const RadiologyPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   Widget build(BuildContext context) {
-    final reports = DemoData.radiologyReports();
+    final reports = patient != null ? patient!.radiologyReports : DemoData.radiologyReports();
+    final bool isPatientView = patient != null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Radiology Reports',
+          SliverPageHeader(
+            title: isPatientView ? '${patient!.personalInfo!.fullNameEnglish}\'s Imaging' : 'Radiology Reports',
             icon: FontAwesomeIcons.xRay,
+            showBackButton: isPatientView,
           ),
           if (reports.isEmpty)
-            _buildEmptyState()
+            const EmptyStateSliver(
+              icon: FontAwesomeIcons.image,
+              title: 'No Reports Found',
+              subtitle: 'Imaging reports and scans will appear here.',
+            )
           else
-            _buildReportsList(reports),
+            _buildReportsList(reports, isPatientView),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.addRadiology),
+        onPressed: () => context.push(AppRoutes.addRadiology, extra: patient),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: Text(
@@ -46,51 +55,19 @@ class RadiologyPage extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
-    return SliverFillRemaining(
-      hasScrollBody: false,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FaIcon(
-              FontAwesomeIcons.image,
-              size: 80,
-              color: AppColors.textDisabled.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'No Reports Found',
-              style: AppTextStyles.headlineSmall.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Your imaging reports and scans will appear here.',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textDisabled,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReportsList(List<RadiologyModel> reports) {
+  Widget _buildReportsList(List<RadiologyModel> reports, bool isPatientView) {
     return SliverPadding(
       padding: const EdgeInsets.all(20),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final report = reports[index];
-          return _buildReportCard(context, report);
+          return _buildReportCard(context, report, isPatientView);
         }, childCount: reports.length),
       ),
     );
   }
 
-  Widget _buildReportCard(BuildContext context, RadiologyModel report) {
+  Widget _buildReportCard(BuildContext context, RadiologyModel report, bool isPatientView) {
     final modalityLabel =
         report.modality == RadiologyModality.other &&
             report.customModality != null
@@ -216,13 +193,6 @@ class RadiologyPage extends StatelessWidget {
                         fontStyle: FontStyle.italic,
                       ),
                     ),
-                    if (report.reportPaths.isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      _buildAttachmentBadge(
-                        '${report.reportPaths.length} Document(s)',
-                        FontAwesomeIcons.fileLines,
-                      ),
-                    ],
                   ],
                 ),
               ),
@@ -236,56 +206,32 @@ class RadiologyPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Last Updated: ${_formatDate(report.lastUpdated)}',
+                      'Added by: ${report.addedBy ?? 'N/A'}',
                       style: AppTextStyles.bodySmall.copyWith(
                         fontSize: 10,
                         color: AppColors.textDisabled,
                       ),
                     ),
-                    Row(
-                      children: [
-                        _buildActionCircle(Icons.edit_rounded, () {}),
-                        const SizedBox(width: 8),
-                        _buildActionCircle(
-                          Icons.delete_outline_rounded,
-                          () {},
-                          isDelete: true,
-                        ),
-                      ],
-                    ),
+                    if (!isPatientView)
+                      Row(
+                        children: [
+                          _buildActionCircle(Icons.edit_rounded, () {}),
+                          const SizedBox(width: 8),
+                          _buildActionCircle(
+                            Icons.delete_outline_rounded,
+                            () {},
+                            isDelete: true,
+                          ),
+                        ],
+                      )
+                    else
+                      const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.textDisabled),
                   ],
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildAttachmentBadge(String text, dynamic icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          icon is IconData
-              ? Icon(icon, size: 10, color: AppColors.primary)
-              : FaIcon(icon, size: 10, color: AppColors.primary),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
-              fontSize: 10,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -379,6 +325,6 @@ class RadiologyPage extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    return DateFormat("dd, MMM yyyy").format(date);
+    return DateFormat("dd MMM, yyyy").format(date);
   }
 }

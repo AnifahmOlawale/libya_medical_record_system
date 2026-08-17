@@ -2,6 +2,7 @@ export 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:libya_medical_record_system/core/router/app_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
@@ -17,8 +18,10 @@ class SliverPageHeader extends StatelessWidget {
     this.actions,
     this.centerExtraOnWeb = false,
     this.hideTitleOnWeb = false,
+    this.showBackButton = false,
   });
 
+  final bool showBackButton;
   final String title;
   final dynamic icon;
   final double expandedHeight;
@@ -47,6 +50,13 @@ class SliverPageHeader extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          if (showBackButton)
+                            GestureDetector(
+                              onTap: () => context.pop(),
+                              child: Icon(Icons.arrow_back_rounded),
+                            ),
+
+                          const SizedBox(height: 10),
                           Text(
                             title,
                             style: AppTextStyles.displayMedium.copyWith(
@@ -95,14 +105,23 @@ class SliverPageHeader extends StatelessWidget {
       pinned: true,
       backgroundColor: AppColors.primary,
       elevation: 0,
-      leading: IconButton(
-        icon: const Icon(
-          Icons.arrow_back_ios_new_rounded,
-          color: Colors.white,
-          size: 20,
-        ),
-        onPressed: () => context.pop(),
-      ),
+      automaticallyImplyLeading: false,
+      leading: (showBackButton || context.canPop())
+          ? IconButton(
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go(AppRoutes.home);
+                }
+              },
+            )
+          : null,
       actions: actions,
       flexibleSpace: FlexibleSpaceBar(
         title: Text(

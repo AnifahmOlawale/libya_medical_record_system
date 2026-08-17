@@ -10,11 +10,14 @@ import 'package:libya_medical_record_system/core/shared/widgets/app_primary_butt
 import 'package:libya_medical_record_system/core/shared/widgets/snack_bar.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/text_field_input_decoration.dart';
 import 'package:libya_medical_record_system/data/models/surgery_model.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 
 class AddSurgeryPage extends StatefulWidget {
-  const AddSurgeryPage({super.key});
+  const AddSurgeryPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   State<AddSurgeryPage> createState() => _AddSurgeryPageState();
@@ -84,9 +87,12 @@ class _AddSurgeryPageState extends State<AddSurgeryPage> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Add Surgery Record',
+          SliverPageHeader(
+            title: widget.patient != null
+                ? 'Surgery: ${widget.patient!.personalInfo!.fullNameEnglish}'
+                : 'Add Surgery Record',
             icon: FontAwesomeIcons.scissors,
+            showBackButton: true,
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -134,10 +140,9 @@ class _AddSurgeryPageState extends State<AddSurgeryPage> {
                                       hint: 'Select date',
                                       prefixIcon: FontAwesomeIcons.calendarDay,
                                     ),
-                                    validator: (v) =>
-                                        v == null || v.isEmpty
-                                            ? 'Required'
-                                            : null,
+                                    validator: (v) => v == null || v.isEmpty
+                                        ? 'Required'
+                                        : null,
                                   ),
                                 ],
                               ),

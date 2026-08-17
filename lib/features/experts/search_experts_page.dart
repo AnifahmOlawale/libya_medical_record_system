@@ -4,10 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:libya_medical_record_system/core/router/app_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/empty_state_widget.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/text_field_input_decoration.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
 import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
-
-import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 
 class SearchExpertsPage extends StatefulWidget {
   const SearchExpertsPage({super.key});
@@ -85,15 +86,22 @@ class _SearchExpertsPageState extends State<SearchExpertsPage> {
               ),
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) => _buildExpertCard(_experts[index]),
-                childCount: _experts.length,
+          if (_experts.isEmpty)
+            const EmptyStateSliver(
+              icon: FontAwesomeIcons.userDoctor,
+              title: 'No Experts Found',
+              subtitle: 'Try searching with different keywords.',
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => _buildExpertCard(_experts[index]),
+                  childCount: _experts.length,
+                ),
               ),
             ),
-          ),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
@@ -114,15 +122,10 @@ class _SearchExpertsPageState extends State<SearchExpertsPage> {
         ],
       ),
       child: TextField(
-        decoration: InputDecoration(
-          hintText: 'Search doctors, specialties...',
-          hintStyle: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textDisabled,
-          ),
-          prefixIcon: const Icon(
-            Icons.search_rounded,
-            color: AppColors.primary,
-          ),
+        decoration: fieldDecoration(
+          hint: 'Search doctors, specialties...',
+          prefixIcon: Icons.search_rounded,
+        ).copyWith(
           suffixIcon: Container(
             margin: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -136,6 +139,14 @@ class _SearchExpertsPageState extends State<SearchExpertsPage> {
             ),
           ),
           border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
             borderSide: BorderSide.none,
           ),

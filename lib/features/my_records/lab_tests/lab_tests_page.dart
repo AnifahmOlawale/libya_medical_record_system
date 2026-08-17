@@ -5,36 +5,45 @@ import 'package:intl/intl.dart';
 import 'package:libya_medical_record_system/core/router/app_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/empty_state_widget.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
 import 'package:libya_medical_record_system/data/models/lab_test_model.dart';
-
-import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
 class LabTestsPage extends StatelessWidget {
-  const LabTestsPage({super.key});
+  const LabTestsPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   Widget build(BuildContext context) {
-    final labTests = DemoData.labTests();
+    final labTests = patient != null ? patient!.labTests : DemoData.labTests();
+    final bool isPatientView = patient != null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Laboratory Tests',
+          SliverPageHeader(
+            title: isPatientView ? '${patient!.personalInfo!.fullNameEnglish}\'s Lab Tests' : 'Laboratory Tests',
             icon: FontAwesomeIcons.flask,
+            showBackButton: isPatientView,
           ),
           if (labTests.isEmpty)
-            _buildEmptyState()
+            const EmptyStateSliver(
+              icon: FontAwesomeIcons.fileMedical,
+              title: 'No Lab Tests Found',
+              subtitle: 'Laboratory test history will appear here.',
+            )
           else
-            _buildLabTestsList(labTests),
+            _buildLabTestsList(labTests, isPatientView),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.addLabTest),
+        onPressed: () => context.push(AppRoutes.addLabTest, extra: patient),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: Text(
@@ -45,51 +54,19 @@ class LabTestsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
-    return SliverFillRemaining(
-      hasScrollBody: false,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FaIcon(
-              FontAwesomeIcons.fileMedical,
-              size: 80,
-              color: AppColors.textDisabled.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'No Lab Tests Found',
-              style: AppTextStyles.headlineSmall.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Your laboratory test history will appear here.',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textDisabled,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLabTestsList(List<LabTestModel> labTests) {
+  Widget _buildLabTestsList(List<dynamic> labTests, bool isPatientView) {
     return SliverPadding(
       padding: const EdgeInsets.all(20),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
-          final test = labTests[index];
-          return _buildLabTestCard(context, test);
+          final test = labTests[index] as LabTestModel;
+          return _buildLabTestCard(context, test, isPatientView);
         }, childCount: labTests.length),
       ),
     );
   }
 
-  Widget _buildLabTestCard(BuildContext context, LabTestModel test) {
+  Widget _buildLabTestCard(BuildContext context, LabTestModel test, bool isPatientView) {
     Color statusColor;
     String statusLabel;
 
@@ -222,37 +199,6 @@ class LabTestsPage extends StatelessWidget {
                       test.laboratoryName,
                       icon: FontAwesomeIcons.hospital,
                     ),
-                    if (test.reportPaths.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const FaIcon(
-                              FontAwesomeIcons.filePdf,
-                              size: 12,
-                              color: AppColors.primary,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${test.reportPaths.length} Report(s) Attached',
-                              style: AppTextStyles.labelSmall.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
@@ -272,17 +218,20 @@ class LabTestsPage extends StatelessWidget {
                         color: AppColors.textDisabled,
                       ),
                     ),
-                    Row(
-                      children: [
-                        _buildActionCircle(Icons.edit_rounded, () {}),
-                        const SizedBox(width: 8),
-                        _buildActionCircle(
-                          Icons.delete_outline_rounded,
-                          () {},
-                          isDelete: true,
-                        ),
-                      ],
-                    ),
+                    if (!isPatientView)
+                      Row(
+                        children: [
+                          _buildActionCircle(Icons.edit_rounded, () {}),
+                          const SizedBox(width: 8),
+                          _buildActionCircle(
+                            Icons.delete_outline_rounded,
+                            () {},
+                            isDelete: true,
+                          ),
+                        ],
+                      )
+                    else
+                      const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.textDisabled),
                   ],
                 ),
               ),
@@ -367,6 +316,6 @@ class LabTestsPage extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    return DateFormat("dd, MMM yyyy").format(date);
+    return DateFormat("dd MMM, yyyy").format(date);
   }
 }

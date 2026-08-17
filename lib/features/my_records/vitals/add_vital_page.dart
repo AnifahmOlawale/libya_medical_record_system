@@ -7,10 +7,13 @@ import 'package:libya_medical_record_system/core/shared/widgets/app_primary_butt
 import 'package:libya_medical_record_system/core/shared/widgets/snack_bar.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/text_field_input_decoration.dart';
 
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 
 class AddVitalPage extends StatefulWidget {
-  const AddVitalPage({super.key});
+  const AddVitalPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   State<AddVitalPage> createState() => _AddVitalPageState();
@@ -66,9 +69,12 @@ class _AddVitalPageState extends State<AddVitalPage> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Log Vitals',
+          SliverPageHeader(
+            title: widget.patient != null
+                ? 'Update ${widget.patient!.personalInfo!.fullNameEnglish}\'s Vitals'
+                : 'Log Vitals',
             icon: FontAwesomeIcons.heartPulse,
+            showBackButton: true,
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -103,8 +109,9 @@ class _AddVitalPageState extends State<AddVitalPage> {
                                   TextFormField(
                                     controller: _systolicController,
                                     keyboardType: TextInputType.number,
-                                    decoration:
-                                        fieldDecoration(hint: 'e.g., 120'),
+                                    decoration: fieldDecoration(
+                                      hint: 'e.g., 120',
+                                    ),
                                   ),
                                 ],
                               ),
@@ -118,8 +125,9 @@ class _AddVitalPageState extends State<AddVitalPage> {
                                   TextFormField(
                                     controller: _diastolicController,
                                     keyboardType: TextInputType.number,
-                                    decoration:
-                                        fieldDecoration(hint: 'e.g., 80'),
+                                    decoration: fieldDecoration(
+                                      hint: 'e.g., 80',
+                                    ),
                                   ),
                                 ],
                               ),
@@ -190,10 +198,11 @@ class _AddVitalPageState extends State<AddVitalPage> {
                                     controller: _weightController,
                                     keyboardType:
                                         const TextInputType.numberWithOptions(
-                                      decimal: true,
+                                          decimal: true,
+                                        ),
+                                    decoration: fieldDecoration(
+                                      hint: 'e.g., 75.5',
                                     ),
-                                    decoration:
-                                        fieldDecoration(hint: 'e.g., 75.5'),
                                   ),
                                 ],
                               ),
@@ -208,10 +217,11 @@ class _AddVitalPageState extends State<AddVitalPage> {
                                     controller: _heightController,
                                     keyboardType:
                                         const TextInputType.numberWithOptions(
-                                      decimal: true,
+                                          decimal: true,
+                                        ),
+                                    decoration: fieldDecoration(
+                                      hint: 'e.g., 175',
                                     ),
-                                    decoration:
-                                        fieldDecoration(hint: 'e.g., 175'),
                                   ),
                                 ],
                               ),

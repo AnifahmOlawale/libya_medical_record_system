@@ -5,36 +5,45 @@ import 'package:intl/intl.dart';
 import 'package:libya_medical_record_system/core/router/app_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/empty_state_widget.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
 import 'package:libya_medical_record_system/data/models/allergy_model.dart';
-
-import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
 class AllergiesPage extends StatelessWidget {
-  const AllergiesPage({super.key});
+  const AllergiesPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   Widget build(BuildContext context) {
-    final allergies = DemoData.allergies();
+    final allergies = patient != null ? patient!.allergies : DemoData.allergies();
+    final bool isPatientView = patient != null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'My Allergies',
+          SliverPageHeader(
+            title: isPatientView ? '${patient!.personalInfo!.fullNameEnglish}\'s Allergies' : 'My Allergies',
             icon: FontAwesomeIcons.virusSlash,
+            showBackButton: isPatientView,
           ),
           if (allergies.isEmpty)
-            _buildEmptyState()
+            const EmptyStateSliver(
+              icon: FontAwesomeIcons.shieldVirus,
+              title: 'No Allergies Reported',
+              subtitle: 'Allergy records will appear here.',
+            )
           else
-            _buildAllergyList(allergies),
+            _buildAllergyList(allergies, isPatientView),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.addAllergy),
+        onPressed: () => context.push(AppRoutes.addAllergy, extra: patient),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: Text(
@@ -45,51 +54,19 @@ class AllergiesPage extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
-    return SliverFillRemaining(
-      hasScrollBody: false,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FaIcon(
-              FontAwesomeIcons.shield,
-              size: 80,
-              color: AppColors.textDisabled.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'No Allergies Reported',
-              style: AppTextStyles.headlineSmall.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Your allergy records will appear here.',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textDisabled,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAllergyList(List<AllergyModel> allergies) {
+  Widget _buildAllergyList(List<AllergyModel> allergies, bool isPatientView) {
     return SliverPadding(
       padding: const EdgeInsets.all(20),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final allergy = allergies[index];
-          return _buildAllergyCard(context, allergy);
+          return _buildAllergyCard(context, allergy, isPatientView);
         }, childCount: allergies.length),
       ),
     );
   }
 
-  Widget _buildAllergyCard(BuildContext context, AllergyModel allergy) {
+  Widget _buildAllergyCard(BuildContext context, AllergyModel allergy, bool isPatientView) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -134,14 +111,13 @@ class AllergiesPage extends StatelessWidget {
                       child: Text(
                         allergy.allergen,
                         maxLines: 1,
-                        overflow: .ellipsis,
+                        overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.titleMedium.copyWith(
                           color: AppColors.primaryDark,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
-
                     Text(
                       'Active',
                       style: AppTextStyles.labelSmall.copyWith(
@@ -178,14 +154,6 @@ class AllergiesPage extends StatelessWidget {
                         icon: FontAwesomeIcons.fileMedical,
                       ),
                     ],
-                    if (allergy.addedBy != null) ...[
-                      const SizedBox(height: 16),
-                      _buildDetailRow(
-                        'Added By',
-                        allergy.addedBy!,
-                        icon: FontAwesomeIcons.userDoctor,
-                      ),
-                    ],
                   ],
                 ),
               ),
@@ -199,23 +167,26 @@ class AllergiesPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Last Updated: ${_formatDate(allergy.lastUpdated)}',
+                      'Added by: ${allergy.addedBy ?? 'N/A'}',
                       style: AppTextStyles.bodySmall.copyWith(
                         fontSize: 10,
                         color: AppColors.textDisabled,
                       ),
                     ),
-                    Row(
-                      children: [
-                        _buildActionCircle(Icons.edit_rounded, () {}),
-                        const SizedBox(width: 8),
-                        _buildActionCircle(
-                          Icons.delete_outline_rounded,
-                          () {},
-                          isDelete: true,
-                        ),
-                      ],
-                    ),
+                    if (!isPatientView)
+                      Row(
+                        children: [
+                          _buildActionCircle(Icons.edit_rounded, () {}),
+                          const SizedBox(width: 8),
+                          _buildActionCircle(
+                            Icons.delete_outline_rounded,
+                            () {},
+                            isDelete: true,
+                          ),
+                        ],
+                      )
+                    else
+                      const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.textDisabled),
                   ],
                 ),
               ),
@@ -248,7 +219,7 @@ class AllergiesPage extends StatelessWidget {
               Text(
                 label,
                 maxLines: 1,
-                overflow: .ellipsis,
+                overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.labelSmall.copyWith(
                   color: AppColors.textSecondary,
                   fontWeight: FontWeight.w600,
@@ -258,7 +229,7 @@ class AllergiesPage extends StatelessWidget {
               Text(
                 value,
                 maxLines: 1,
-                overflow: .ellipsis,
+                overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.textPrimary,
                   height: 1.4,
@@ -302,6 +273,6 @@ class AllergiesPage extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    return DateFormat("dd, MMM yyyy").format(date);
+    return DateFormat("dd MMM, yyyy").format(date);
   }
 }

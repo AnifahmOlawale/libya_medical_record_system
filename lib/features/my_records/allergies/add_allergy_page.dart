@@ -7,11 +7,14 @@ import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.da
 import 'package:libya_medical_record_system/core/shared/widgets/app_primary_button.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/snack_bar.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/text_field_input_decoration.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 
 class AddAllergyPage extends StatefulWidget {
-  const AddAllergyPage({super.key});
+  const AddAllergyPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   State<AddAllergyPage> createState() => _AddAllergyPageState();
@@ -71,9 +74,12 @@ class _AddAllergyPageState extends State<AddAllergyPage> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Add New Allergy',
+          SliverPageHeader(
+            title: widget.patient != null
+                ? 'Allergy: ${widget.patient!.personalInfo!.fullNameEnglish}'
+                : 'Add New Allergy',
             icon: FontAwesomeIcons.triangleExclamation,
+            showBackButton: true,
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),

@@ -37,6 +37,7 @@ class _EditMedicalInfoState extends State<EditMedicalInfo> {
           const SliverPageHeader(
             title: 'Edit Medical Info',
             icon: FontAwesomeIcons.filePen,
+            showBackButton: true,
           ),
           SliverToBoxAdapter(
             child: MedicalInfoForm(

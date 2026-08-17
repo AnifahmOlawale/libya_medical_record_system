@@ -7,11 +7,14 @@ import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.da
 import 'package:libya_medical_record_system/core/shared/widgets/app_primary_button.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/snack_bar.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/text_field_input_decoration.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
 import 'package:libya_medical_record_system/data/models/institution_model.dart';
 
 class JoinInstitutionPage extends StatefulWidget {
-  const JoinInstitutionPage({super.key});
+  const JoinInstitutionPage({super.key, this.showHeader = true});
+
+  final bool showHeader;
 
   @override
   State<JoinInstitutionPage> createState() => _JoinInstitutionPageState();
@@ -33,9 +36,9 @@ class _JoinInstitutionPageState extends State<JoinInstitutionPage> {
     if (_searchQuery.isEmpty) return _allInstitutions;
     return _allInstitutions.where((inst) {
       final name = inst.name.toLowerCase();
-      final location = inst.location.toLowerCase();
+      final municipality = inst.municipality.toLowerCase();
       final query = _searchQuery.toLowerCase();
-      return name.contains(query) || location.contains(query);
+      return name.contains(query) || municipality.contains(query);
     }).toList();
   }
 
@@ -47,57 +50,61 @@ class _JoinInstitutionPageState extends State<JoinInstitutionPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
+    final content = CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        if (widget.showHeader)
           const SliverPageHeader(
             title: 'Join Institution',
             subtitle: 'Connect with medical facilities to collaborate',
             icon: FontAwesomeIcons.hospital,
           ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSearchBar(),
-                  const SizedBox(height: 32),
-                  Text(
-                    'Available Institutions',
-                    style: AppTextStyles.titleMedium.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                    ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSearchBar(),
+                const SizedBox(height: 32),
+                Text(
+                  'Available Institutions',
+                  style: AppTextStyles.titleMedium.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
                   ),
-                  const SizedBox(height: 16),
-                ],
-              ),
+                ),
+                const SizedBox(height: 16),
+              ],
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            sliver: SliverGrid(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: MediaQuery.sizeOf(context).width > 900
-                    ? 3
-                    : (MediaQuery.sizeOf(context).width > 600 ? 2 : 1),
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                mainAxisExtent: 180,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) => _buildInstitutionCard(_filteredInstitutions[index]),
-                childCount: _filteredInstitutions.length,
-              ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount:
+                  MediaQuery.sizeOf(context).width > 900
+                      ? 3
+                      : (MediaQuery.sizeOf(context).width > 600 ? 2 : 1),
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              mainAxisExtent: 180,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) =>
+                  _buildInstitutionCard(_filteredInstitutions[index]),
+              childCount: _filteredInstitutions.length,
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 100)),
-        ],
-      ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 100)),
+      ],
     );
+
+    if (!widget.showHeader) return content;
+
+    return Scaffold(backgroundColor: AppColors.background, body: content);
   }
 
   Widget _buildSearchBar() {
@@ -120,16 +127,19 @@ class _JoinInstitutionPageState extends State<JoinInstitutionPage> {
             _searchQuery = value;
           });
         },
-        decoration: InputDecoration(
-          hintText: 'Search by name or location...',
-          hintStyle: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textDisabled,
-          ),
-          prefixIcon: const Icon(
-            Icons.search_rounded,
-            color: AppColors.primary,
-          ),
+        decoration: fieldDecoration(
+          hint: 'Search by name or location...',
+          prefixIcon: Icons.search_rounded,
+        ).copyWith(
           border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20),
             borderSide: BorderSide.none,
           ),
@@ -226,7 +236,7 @@ class _JoinInstitutionPageState extends State<JoinInstitutionPage> {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        data.location,
+                        data.municipality,
                         style: AppTextStyles.bodySmall.copyWith(
                           fontSize: 11,
                           color: AppColors.textSecondary,

@@ -10,11 +10,14 @@ import 'package:libya_medical_record_system/core/shared/widgets/app_primary_butt
 import 'package:libya_medical_record_system/core/shared/widgets/snack_bar.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/text_field_input_decoration.dart';
 import 'package:libya_medical_record_system/data/models/diagnosis_model.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 
 class AddDiagnosisPage extends StatefulWidget {
-  const AddDiagnosisPage({super.key});
+  const AddDiagnosisPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   State<AddDiagnosisPage> createState() => _AddDiagnosisPageState();
@@ -81,9 +84,12 @@ class _AddDiagnosisPageState extends State<AddDiagnosisPage> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Add New Diagnosis',
+          SliverPageHeader(
+            title: widget.patient != null
+                ? 'Diagnose ${widget.patient!.personalInfo!.fullNameEnglish}'
+                : 'Add New Diagnosis',
             icon: FontAwesomeIcons.stethoscope,
+            showBackButton: true,
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),

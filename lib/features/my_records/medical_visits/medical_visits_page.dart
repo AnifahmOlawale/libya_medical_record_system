@@ -5,35 +5,45 @@ import 'package:intl/intl.dart';
 import 'package:libya_medical_record_system/core/router/app_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/empty_state_widget.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
 import 'package:libya_medical_record_system/data/models/medical_visit_model.dart';
-import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
 class MedicalVisitsPage extends StatelessWidget {
-  const MedicalVisitsPage({super.key});
+  const MedicalVisitsPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   Widget build(BuildContext context) {
-    final visits = DemoData.medicalVisits();
+    final visits = patient != null ? patient!.medicalVisits : DemoData.medicalVisits();
+    final bool isPatientView = patient != null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Medical Visits',
+          SliverPageHeader(
+            title: isPatientView ? '${patient!.personalInfo!.fullNameEnglish}\'s Visits' : 'Medical Visits',
             icon: FontAwesomeIcons.calendarCheck,
+            showBackButton: isPatientView,
           ),
           if (visits.isEmpty)
-            _buildEmptyState()
+            const EmptyStateSliver(
+              icon: FontAwesomeIcons.hospitalUser,
+              title: 'No Medical Visits Found',
+              subtitle: 'Doctor visit history will appear here.',
+            )
           else
-            _buildVisitsList(visits),
+            _buildVisitsList(visits, isPatientView),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.addMedicalVisit),
+        onPressed: () => context.push(AppRoutes.addMedicalVisit, extra: patient),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: Text(
@@ -44,51 +54,19 @@ class MedicalVisitsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
-    return SliverFillRemaining(
-      hasScrollBody: false,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FaIcon(
-              FontAwesomeIcons.hospitalUser,
-              size: 80,
-              color: AppColors.textDisabled.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'No Medical Visits Found',
-              style: AppTextStyles.headlineSmall.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Your doctor visit history will appear here.',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textDisabled,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildVisitsList(List<MedicalVisitModel> visits) {
+  Widget _buildVisitsList(List<MedicalVisitModel> visits, bool isPatientView) {
     return SliverPadding(
       padding: const EdgeInsets.all(20),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final visit = visits[index];
-          return _buildVisitCard(context, visit);
+          return _buildVisitCard(context, visit, isPatientView);
         }, childCount: visits.length),
       ),
     );
   }
 
-  Widget _buildVisitCard(BuildContext context, MedicalVisitModel visit) {
+  Widget _buildVisitCard(BuildContext context, MedicalVisitModel visit, bool isPatientView) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -197,23 +175,26 @@ class MedicalVisitsPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Last Updated: ${_formatDate(visit.lastUpdated)}',
+                      'Added by: ${visit.addedBy ?? 'N/A'}',
                       style: AppTextStyles.bodySmall.copyWith(
                         fontSize: 10,
                         color: AppColors.textDisabled,
                       ),
                     ),
-                    Row(
-                      children: [
-                        _buildActionCircle(Icons.edit_rounded, () {}),
-                        const SizedBox(width: 8),
-                        _buildActionCircle(
-                          Icons.delete_outline_rounded,
-                          () {},
-                          isDelete: true,
-                        ),
-                      ],
-                    ),
+                    if (!isPatientView)
+                      Row(
+                        children: [
+                          _buildActionCircle(Icons.edit_rounded, () {}),
+                          const SizedBox(width: 8),
+                          _buildActionCircle(
+                            Icons.delete_outline_rounded,
+                            () {},
+                            isDelete: true,
+                          ),
+                        ],
+                      )
+                    else
+                      const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.textDisabled),
                   ],
                 ),
               ),
@@ -300,6 +281,6 @@ class MedicalVisitsPage extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    return DateFormat("dd, MMM yyyy").format(date);
+    return DateFormat("dd MMM, yyyy").format(date);
   }
 }

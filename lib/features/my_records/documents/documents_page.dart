@@ -5,37 +5,46 @@ import 'package:intl/intl.dart';
 import 'package:libya_medical_record_system/core/router/app_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/empty_state_widget.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
 import 'package:libya_medical_record_system/data/models/document_model.dart';
 import 'package:libya_medical_record_system/core/constants/document_constants.dart';
-
-import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
 class DocumentsPage extends StatelessWidget {
-  const DocumentsPage({super.key});
+  const DocumentsPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   Widget build(BuildContext context) {
-    final documents = DemoData.documents();
+    final documents = patient != null ? patient!.documents : DemoData.documents();
+    final bool isPatientView = patient != null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Medical Documents',
+          SliverPageHeader(
+            title: isPatientView ? '${patient!.personalInfo!.fullNameEnglish}\'s Documents' : 'Medical Documents',
             icon: FontAwesomeIcons.fileShield,
+            showBackButton: isPatientView,
           ),
           if (documents.isEmpty)
-            _buildEmptyState()
+            const EmptyStateSliver(
+              icon: FontAwesomeIcons.folderOpen,
+              title: 'Your Vault is Empty',
+              subtitle: 'Upload certificates, referrals, and more.',
+            )
           else
-            _buildDocumentsList(documents),
+            _buildDocumentsList(documents, isPatientView),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.addDocument),
+        onPressed: () => context.push(AppRoutes.addDocument, extra: patient),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: Text(
@@ -46,51 +55,19 @@ class DocumentsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
-    return SliverFillRemaining(
-      hasScrollBody: false,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FaIcon(
-              FontAwesomeIcons.folderOpen,
-              size: 80,
-              color: AppColors.textDisabled.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Your Vault is Empty',
-              style: AppTextStyles.headlineSmall.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Upload certificates, referrals, and more.',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textDisabled,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDocumentsList(List<DocumentModel> list) {
+  Widget _buildDocumentsList(List<DocumentModel> list, bool isPatientView) {
     return SliverPadding(
       padding: const EdgeInsets.all(20),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final doc = list[index];
-          return _buildDocumentCard(context, doc);
+          return _buildDocumentCard(context, doc, isPatientView);
         }, childCount: list.length),
       ),
     );
   }
 
-  Widget _buildDocumentCard(BuildContext context, DocumentModel doc) {
+  Widget _buildDocumentCard(BuildContext context, DocumentModel doc, bool isPatientView) {
     final categoryLabel =
         doc.category == DocumentCategory.other && doc.customCategory != null
         ? doc.customCategory!
@@ -179,13 +156,6 @@ class DocumentsPage extends StatelessWidget {
                       doc.issuedBy,
                       icon: FontAwesomeIcons.buildingColumns,
                     ),
-                    if (doc.filePaths.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      _buildAttachmentBadge(
-                        '${doc.filePaths.length} File(s)',
-                        FontAwesomeIcons.fileLines,
-                      ),
-                    ],
                   ],
                 ),
               ),
@@ -199,56 +169,32 @@ class DocumentsPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Last Updated: ${_formatDate(doc.lastUpdated)}',
+                      'Added by: ${doc.addedBy ?? 'N/A'}',
                       style: AppTextStyles.bodySmall.copyWith(
                         fontSize: 10,
                         color: AppColors.textDisabled,
                       ),
                     ),
-                    Row(
-                      children: [
-                        _buildActionCircle(Icons.edit_rounded, () {}),
-                        const SizedBox(width: 8),
-                        _buildActionCircle(
-                          Icons.delete_outline_rounded,
-                          () {},
-                          isDelete: true,
-                        ),
-                      ],
-                    ),
+                    if (!isPatientView)
+                      Row(
+                        children: [
+                          _buildActionCircle(Icons.edit_rounded, () {}),
+                          const SizedBox(width: 8),
+                          _buildActionCircle(
+                            Icons.delete_outline_rounded,
+                            () {},
+                            isDelete: true,
+                          ),
+                        ],
+                      )
+                    else
+                      const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.textDisabled),
                   ],
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildAttachmentBadge(String text, dynamic icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          icon is IconData
-              ? Icon(icon, size: 10, color: AppColors.primary)
-              : FaIcon(icon, size: 10, color: AppColors.primary),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
-              fontSize: 10,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -327,6 +273,6 @@ class DocumentsPage extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    return DateFormat("dd, MMM yyyy").format(date);
+    return DateFormat("dd MMM, yyyy").format(date);
   }
 }

@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
 import 'package:libya_medical_record_system/data/models/vital_model.dart';
 
@@ -50,6 +51,40 @@ class BPTrendChart extends StatelessWidget {
           Expanded(
             child: LineChart(
               LineChartData(
+                lineTouchData: LineTouchData(
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (spot) => AppColors.primaryDark,
+                    getTooltipItems: (touchedSpots) {
+                      return touchedSpots.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final spot = entry.value;
+
+                        // Identify if it's Systolic (index 0) or Diastolic (index 1)
+                        final label = index == 0 ? 'Sys' : 'Dia';
+
+                        if (index == touchedSpots.length - 1) {
+                          final vital = history[spot.x.toInt()];
+                          final dateStr = DateFormat('MMM dd, hh:mm a').format(vital.timestamp);
+                          return LineTooltipItem(
+                            '$label: ${spot.y.toInt()} mmHg\n$dateStr',
+                            AppTextStyles.labelSmall.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          );
+                        } else {
+                          return LineTooltipItem(
+                            '$label: ${spot.y.toInt()} mmHg',
+                            AppTextStyles.labelSmall.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          );
+                        }
+                      }).toList();
+                    },
+                  ),
+                ),
                 gridData: FlGridData(
                   show: true,
                   drawVerticalLine: false,
@@ -128,13 +163,14 @@ class BPTrendChart extends StatelessWidget {
       bottomTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
+          interval: 1,
           getTitlesWidget: (v, meta) {
             if (v.toInt() >= 0 && v.toInt() < history.length) {
               return Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  DateFormat('dd/MM').format(history[v.toInt()].timestamp),
-                  style: AppTextStyles.caption.copyWith(fontSize: 9),
+                  DateFormat('dd MMM').format(history[v.toInt()].timestamp),
+                  style: AppTextStyles.caption.copyWith(fontSize: 8, fontWeight: FontWeight.w600),
                 ),
               );
             }

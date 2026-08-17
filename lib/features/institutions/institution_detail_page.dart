@@ -24,6 +24,7 @@ class InstitutionDetailPage extends StatelessWidget {
             subtitle: institution.type,
             icon: institution.icon,
             expandedHeight: 250,
+            showBackButton: true,
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -45,8 +46,8 @@ class InstitutionDetailPage extends StatelessWidget {
                   ),
                   _buildInfoTile(
                     FontAwesomeIcons.locationDot,
-                    'Location',
-                    institution.location,
+                    'Municipality',
+                    institution.municipality,
                   ),
                   const SizedBox(height: 32),
                   _buildSectionTitle('Contact Details'),

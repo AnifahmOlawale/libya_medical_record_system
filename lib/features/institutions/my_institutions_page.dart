@@ -8,51 +8,32 @@ import 'package:libya_medical_record_system/core/shared/widgets/empty_state_widg
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
 import 'package:libya_medical_record_system/data/models/institution_model.dart';
-import 'package:libya_medical_record_system/data/models/user_workplace.dart';
 
-class AffiliatedInstitutionsPage extends StatelessWidget {
-  const AffiliatedInstitutionsPage({super.key, this.showHeader = true});
+class MyInstitutionsPage extends StatelessWidget {
+  const MyInstitutionsPage({super.key, this.showHeader = true});
 
   final bool showHeader;
 
-  void _onInstitutionTap(BuildContext context, UserWorkplace workplace) {
-    // Find the full institution model from demo data
-    final institution = DemoData.institutions().firstWhere(
-      (inst) => inst.id == workplace.institutionId,
-      orElse: () => InstitutionModel(
-        id: workplace.institutionId,
-        name: workplace.institutionName,
-        type: workplace.institutionType,
-        municipality: workplace.location,
-        specialization: 'General',
-      ),
-    );
-
-    context.push(AppRoutes.institutionDetail, extra: institution);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final userData = DemoData.currentUser();
-    final approvedWorkplaces =
-        userData.workplaces
-            .where((w) => w.status == WorkplaceApprovalStatus.approved)
-            .toList();
+    final ownedInstitutions = DemoData.institutions()
+        .where((inst) => inst.ownerId == DemoData.currentUserId)
+        .toList();
 
     final content = CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
         if (showHeader)
           const SliverPageHeader(
-            title: 'Affiliated Institutions',
-            subtitle: 'Hospitals and clinics where you are verified',
-            icon: FontAwesomeIcons.hospitalUser,
+            title: 'My Institutions',
+            subtitle: 'Manage institutions you own',
+            icon: FontAwesomeIcons.buildingUser,
           ),
-        if (approvedWorkplaces.isEmpty)
+        if (ownedInstitutions.isEmpty)
           const EmptyStateSliver(
-            icon: FontAwesomeIcons.hospitalUser,
-            title: 'No affiliated institutions yet.',
-            subtitle: 'Join a medical facility to start collaborating.',
+            icon: FontAwesomeIcons.buildingCircleExclamation,
+            title: 'No institutions found',
+            subtitle: 'You don\'t own any medical facilities yet.',
           )
         else
           SliverPadding(
@@ -65,26 +46,41 @@ class AffiliatedInstitutionsPage extends StatelessWidget {
                         : (MediaQuery.sizeOf(context).width > 600 ? 2 : 1),
                 mainAxisSpacing: 16,
                 crossAxisSpacing: 16,
-                mainAxisExtent: 140,
+                mainAxisExtent: 160,
               ),
               delegate: SliverChildBuilderDelegate(
-                (context, index) => _buildAffiliateCard(
+                (context, index) => _buildOwnedInstitutionCard(
                   context,
-                  approvedWorkplaces[index],
+                  ownedInstitutions[index],
                 ),
-                childCount: approvedWorkplaces.length,
+                childCount: ownedInstitutions.length,
               ),
             ),
           ),
+        const SliverToBoxAdapter(child: SizedBox(height: 100)),
       ],
     );
 
     if (!showHeader) return content;
 
-    return Scaffold(backgroundColor: AppColors.background, body: content);
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: content,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          // Future: Navigate to institution registration form
+        },
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.add_business_rounded, color: Colors.white),
+        label: Text(
+          'Register Facility',
+          style: AppTextStyles.labelLarge.copyWith(color: Colors.white),
+        ),
+      ),
+    );
   }
 
-  Widget _buildAffiliateCard(BuildContext context, UserWorkplace workplace) {
+  Widget _buildOwnedInstitutionCard(BuildContext context, InstitutionModel inst) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -101,7 +97,9 @@ class AffiliatedInstitutionsPage extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => _onInstitutionTap(context, workplace),
+          onTap: () {
+            context.push(AppRoutes.ownedInstitutionDetail, extra: inst);
+          },
           borderRadius: BorderRadius.circular(24),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -111,16 +109,16 @@ class AffiliatedInstitutionsPage extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      width: 50,
-                      height: 50,
+                      width: 48,
+                      height: 48,
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: FaIcon(
-                          FontAwesomeIcons.hospital,
-                          size: 24,
+                          inst.icon as dynamic,
+                          size: 20,
                           color: AppColors.primary,
                         ),
                       ),
@@ -131,16 +129,15 @@ class AffiliatedInstitutionsPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            workplace.institutionName,
+                            inst.name,
                             style: AppTextStyles.titleSmall.copyWith(
                               fontWeight: FontWeight.w800,
-                              color: AppColors.textPrimary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            workplace.position,
+                            inst.type,
                             style: AppTextStyles.bodySmall.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,
@@ -149,27 +146,45 @@ class AffiliatedInstitutionsPage extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const Icon(
-                      Icons.verified_rounded,
-                      color: AppColors.success,
-                      size: 20,
-                    ),
                   ],
                 ),
                 const Spacer(),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Icon(
-                      Icons.location_on_rounded,
-                      size: 14,
-                      color: AppColors.textDisabled,
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_rounded,
+                          size: 14,
+                          color: AppColors.textDisabled,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          inst.municipality,
+                          style: AppTextStyles.bodySmall.copyWith(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      workplace.location,
-                      style: AppTextStyles.bodySmall.copyWith(
-                        fontSize: 11,
-                        color: AppColors.textSecondary,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'OWNER',
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: AppColors.success,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
                   ],

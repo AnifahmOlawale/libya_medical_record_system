@@ -1,0 +1,27 @@
+# 1. Disable Caching for entry files
+<FilesMatch "\.(html|js|json|css)$">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires 0
+    </IfModule>
+</FilesMatch>
+
+# 2. Specifically target the Service Worker
+<Files "flutter_service_worker.js">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires 0
+    </IfModule>
+</Files>
+
+# 3. Handle routing for Flutter (Sub-directory friendly)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /libya-medical-record-system/
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /libya-medical-record-system/index.html [L]
+</IfModule>

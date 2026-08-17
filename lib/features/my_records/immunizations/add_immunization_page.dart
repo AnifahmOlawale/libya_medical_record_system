@@ -9,11 +9,14 @@ import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.da
 import 'package:libya_medical_record_system/core/shared/widgets/app_primary_button.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/snack_bar.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/text_field_input_decoration.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 
 class AddImmunizationPage extends StatefulWidget {
-  const AddImmunizationPage({super.key});
+  const AddImmunizationPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   State<AddImmunizationPage> createState() => _AddImmunizationPageState();
@@ -71,7 +74,9 @@ class _AddImmunizationPageState extends State<AddImmunizationPage> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      debugPrint('Saving immunization: Administered on $_dateAdministered, Next due: $_nextDueDate');
+      debugPrint(
+        'Saving immunization: Administered on $_dateAdministered, Next due: $_nextDueDate',
+      );
       snackBar(
         context: context,
         message: 'Immunization record saved successfully',
@@ -88,9 +93,12 @@ class _AddImmunizationPageState extends State<AddImmunizationPage> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Add Vaccination',
+          SliverPageHeader(
+            title: widget.patient != null
+                ? 'Vaccinate ${widget.patient!.personalInfo!.fullNameEnglish}'
+                : 'Add Vaccination',
             icon: FontAwesomeIcons.syringe,
+            showBackButton: true,
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -127,10 +135,9 @@ class _AddImmunizationPageState extends State<AddImmunizationPage> {
                                       hint: 'e.g., 1st Dose',
                                       prefixIcon: FontAwesomeIcons.listOl,
                                     ),
-                                    validator: (v) =>
-                                        v == null || v.isEmpty
-                                            ? 'Required'
-                                            : null,
+                                    validator: (v) => v == null || v.isEmpty
+                                        ? 'Required'
+                                        : null,
                                   ),
                                 ],
                               ),
@@ -149,10 +156,9 @@ class _AddImmunizationPageState extends State<AddImmunizationPage> {
                                       hint: 'Select date',
                                       prefixIcon: FontAwesomeIcons.calendarDay,
                                     ),
-                                    validator: (v) =>
-                                        v == null || v.isEmpty
-                                            ? 'Required'
-                                            : null,
+                                    validator: (v) => v == null || v.isEmpty
+                                        ? 'Required'
+                                        : null,
                                   ),
                                 ],
                               ),

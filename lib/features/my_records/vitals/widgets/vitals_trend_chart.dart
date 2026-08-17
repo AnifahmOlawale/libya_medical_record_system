@@ -48,6 +48,24 @@ class VitalsTrendChart extends StatelessWidget {
           Expanded(
             child: LineChart(
               LineChartData(
+                lineTouchData: LineTouchData(
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (spot) => AppColors.primaryDark,
+                    getTooltipItems: (touchedSpots) {
+                      return touchedSpots.map((spot) {
+                        final vital = history[spot.x.toInt()];
+                        final dateStr = DateFormat('MMM dd, hh:mm a').format(vital.timestamp);
+                        return LineTooltipItem(
+                          '${spot.y}\n$dateStr',
+                          AppTextStyles.labelSmall.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      }).toList();
+                    },
+                  ),
+                ),
                 gridData: FlGridData(
                   show: true,
                   drawVerticalLine: false,
@@ -101,13 +119,14 @@ class VitalsTrendChart extends StatelessWidget {
       bottomTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
+          interval: 1,
           getTitlesWidget: (v, meta) {
             if (v.toInt() >= 0 && v.toInt() < history.length) {
               return Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  DateFormat('dd/MM').format(history[v.toInt()].timestamp),
-                  style: AppTextStyles.caption.copyWith(fontSize: 9),
+                  DateFormat('dd MMM').format(history[v.toInt()].timestamp),
+                  style: AppTextStyles.caption.copyWith(fontSize: 8, fontWeight: FontWeight.w600),
                 ),
               );
             }

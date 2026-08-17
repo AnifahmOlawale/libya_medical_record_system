@@ -4,13 +4,21 @@ import 'package:go_router/go_router.dart';
 import 'package:libya_medical_record_system/core/router/app_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/empty_state_widget.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
 import 'package:libya_medical_record_system/data/models/institution_model.dart';
 import 'package:libya_medical_record_system/data/models/user_workplace.dart';
 
 class InstitutionRequestsPage extends StatelessWidget {
-  const InstitutionRequestsPage({super.key});
+  const InstitutionRequestsPage({
+    super.key,
+    this.showHeader = true,
+    this.statusFilter,
+  });
+
+  final bool showHeader;
+  final WorkplaceApprovalStatus? statusFilter;
 
   void _onInstitutionTap(BuildContext context, UserWorkplace workplace) {
     // Find the full institution model from demo data
@@ -20,7 +28,7 @@ class InstitutionRequestsPage extends StatelessWidget {
         id: workplace.institutionId,
         name: workplace.institutionName,
         type: workplace.institutionType,
-        location: workplace.location,
+        municipality: workplace.location,
         specialization: 'General',
       ),
     );
@@ -31,50 +39,60 @@ class InstitutionRequestsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userData = DemoData.currentUser();
-    final requestedWorkplaces = userData.workplaces
-        .where((w) =>
-            w.status == WorkplaceApprovalStatus.pending ||
-            w.status == WorkplaceApprovalStatus.rejected)
-        .toList();
+    final requestedWorkplaces =
+        userData.workplaces
+            .where((w) {
+              if (statusFilter != null) {
+                return w.status == statusFilter;
+              }
+              return w.status == WorkplaceApprovalStatus.pending ||
+                  w.status == WorkplaceApprovalStatus.rejected;
+            })
+            .toList();
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
+    final content = CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        if (showHeader)
           const SliverPageHeader(
             title: 'Approval Requests',
             subtitle: 'Track your pending and rejected affiliation requests',
             icon: FontAwesomeIcons.clockRotateLeft,
           ),
-          if (requestedWorkplaces.isEmpty)
-            const SliverFillRemaining(
-              child: Center(child: Text('No active requests.')),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.all(24),
-              sliver: SliverGrid(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: MediaQuery.sizeOf(context).width > 900
-                      ? 3
-                      : (MediaQuery.sizeOf(context).width > 600 ? 2 : 1),
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  mainAxisExtent: 160,
+        if (requestedWorkplaces.isEmpty)
+          const EmptyStateSliver(
+            icon: FontAwesomeIcons.clockRotateLeft,
+            title: 'No active requests.',
+            subtitle: 'Your pending and rejected requests will appear here.',
+          )
+        else
+          SliverPadding(
+            padding: const EdgeInsets.all(24),
+            sliver: SliverGrid(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount:
+                    MediaQuery.sizeOf(context).width > 900
+                        ? 3
+                        : (MediaQuery.sizeOf(context).width > 600 ? 2 : 1),
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                mainAxisExtent: 160,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => _buildRequestCard(
+                  context,
+                  requestedWorkplaces[index],
                 ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => _buildRequestCard(
-                    context,
-                    requestedWorkplaces[index],
-                  ),
-                  childCount: requestedWorkplaces.length,
-                ),
+                childCount: requestedWorkplaces.length,
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
+
+    if (!showHeader) return content;
+
+    return Scaffold(backgroundColor: AppColors.background, body: content);
   }
 
   Widget _buildRequestCard(BuildContext context, UserWorkplace workplace) {

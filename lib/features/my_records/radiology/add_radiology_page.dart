@@ -11,11 +11,14 @@ import 'package:libya_medical_record_system/core/shared/widgets/app_primary_butt
 import 'package:libya_medical_record_system/core/shared/widgets/snack_bar.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/text_field_input_decoration.dart';
 import 'package:libya_medical_record_system/data/models/radiology_model.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 
 class AddRadiologyPage extends StatefulWidget {
-  const AddRadiologyPage({super.key});
+  const AddRadiologyPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   State<AddRadiologyPage> createState() => _AddRadiologyPageState();
@@ -87,9 +90,12 @@ class _AddRadiologyPageState extends State<AddRadiologyPage> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Add Radiology Study',
+          SliverPageHeader(
+            title: widget.patient != null
+                ? 'Imaging: ${widget.patient!.personalInfo!.fullNameEnglish}'
+                : 'Add Radiology Study',
             icon: FontAwesomeIcons.xRay,
+            showBackButton: true,
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -175,9 +181,9 @@ class _AddRadiologyPageState extends State<AddRadiologyPage> {
                             ),
                             validator: (v) =>
                                 _selectedModality == RadiologyModality.other &&
-                                        (v == null || v.isEmpty)
-                                    ? 'Required'
-                                    : null,
+                                    (v == null || v.isEmpty)
+                                ? 'Required'
+                                : null,
                           ),
                         ],
                       ],

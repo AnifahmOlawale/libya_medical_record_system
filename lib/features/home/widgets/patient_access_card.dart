@@ -5,8 +5,8 @@ import 'package:libya_medical_record_system/core/router/app_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
 
-class ClinicalAccessCard extends StatelessWidget {
-  const ClinicalAccessCard({super.key});
+class PatientAccessCard extends StatelessWidget {
+  const PatientAccessCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -51,14 +51,14 @@ class ClinicalAccessCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Clinical Access',
+                      'Patient Portal',
                       style: AppTextStyles.titleLarge.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     Text(
-                      'View patient records',
+                      'Clinical Directory',
                       style: AppTextStyles.bodySmall.copyWith(
                         color: Colors.white.withValues(alpha: 0.8),
                       ),
@@ -70,7 +70,7 @@ class ClinicalAccessCard extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'Scan a patient\'s QR code or enter their access token to view their shared medical records securely.',
+            'Manage your clinical patient list. Add new patients by scanning their QR code or entering their secure access token.',
             style: AppTextStyles.bodySmall.copyWith(
               color: Colors.white.withValues(alpha: 0.9),
               height: 1.5,
@@ -78,7 +78,7 @@ class ClinicalAccessCard extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: () => context.push(AppRoutes.clinicalAccessEntry),
+            onPressed: () => context.push(AppRoutes.myPatients),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: AppColors.primary,
@@ -91,10 +91,10 @@ class ClinicalAccessCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const FaIcon(FontAwesomeIcons.qrcode, size: 16),
+                const FaIcon(FontAwesomeIcons.users, size: 16),
                 const SizedBox(width: 12),
                 Text(
-                  'Access Patient Records',
+                  'My Patients',
                   style: AppTextStyles.labelLarge.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w800,

@@ -5,8 +5,10 @@ import 'package:intl/intl.dart';
 import 'package:libya_medical_record_system/core/router/app_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/empty_state_widget.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 import 'package:libya_medical_record_system/data/models/vital_model.dart';
 import 'widgets/vitals_section_title.dart';
 import 'widgets/vital_summary_card.dart';
@@ -16,100 +18,37 @@ import 'widgets/vitals_trend_chart.dart';
 import 'widgets/vitals_history_item.dart';
 
 class VitalsPage extends StatelessWidget {
-  const VitalsPage({super.key});
+  const VitalsPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   Widget build(BuildContext context) {
-    final vitals = DemoData.vitals();
-    final latest = vitals.first;
-    final reversedHistory = vitals.reversed.toList();
+    final vitals = patient != null ? patient!.vitals : DemoData.vitals();
+    final bool isPatientView = patient != null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Vital Signs',
+          SliverPageHeader(
+            title: isPatientView ? '${patient!.personalInfo!.fullNameEnglish}\'s Vitals' : 'Vital Signs',
             icon: FontAwesomeIcons.heartPulse,
+            showBackButton: isPatientView,
           ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  VitalsSectionTitle(
-                    title: 'Latest Readings',
-                    subtitle:
-                        'Last updated ${DateFormat('hh:mm a').format(latest.timestamp)}',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildVitalsGrid(latest),
-                  const SizedBox(height: 32),
-                  VitalsSectionTitle(
-                    title: 'Health Trends',
-                    subtitle:
-                        'Metric over Time (Last ${vitals.length} entries)',
-                  ),
-                  const SizedBox(height: 16),
-                  BPTrendChart(history: reversedHistory),
-                  const SizedBox(height: 16),
-                  VitalsTrendChart(
-                    title: 'Heart Rate (BPM)',
-                    history: reversedHistory,
-                    valSelector: (e) => e.heartRate?.toDouble() ?? 0,
-                    color: Colors.pink,
-                  ),
-                  const SizedBox(height: 16),
-                  VitalsTrendChart(
-                    title: 'Weight (kg)',
-                    history: reversedHistory,
-                    valSelector: (e) => e.weight ?? 0,
-                    color: Colors.blue,
-                  ),
-                  const SizedBox(height: 32),
-                  VitalsSectionTitle(
-                    title: 'History Log',
-                    subtitle: 'Full record of your vital signs',
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.info_outline_rounded,
-                          size: 14,
-                          color: AppColors.primary,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Slide to edit/delete',
-                          style: AppTextStyles.caption.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) => VitalsHistoryItem(item: vitals[index]),
-                childCount: vitals.length,
-              ),
-            ),
-          ),
+          if (vitals.isEmpty)
+            const EmptyStateSliver(
+              icon: FontAwesomeIcons.heartPulse,
+              title: 'No Vitals Logged',
+              subtitle: 'Start tracking your health metrics today.',
+            )
+          else ..._buildVitalsContent(vitals),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.addVital),
+        onPressed: () => context.push(AppRoutes.addVital, extra: patient),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: Text(
@@ -118,6 +57,87 @@ class VitalsPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildVitalsContent(List<VitalModel> vitals) {
+    final latest = vitals.first;
+    final reversedHistory = vitals.reversed.toList();
+
+    return [
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              VitalsSectionTitle(
+                title: 'Latest Readings',
+                subtitle:
+                    'Last updated ${DateFormat('hh:mm a').format(latest.timestamp)}',
+              ),
+              const SizedBox(height: 16),
+              _buildVitalsGrid(latest),
+              const SizedBox(height: 32),
+              VitalsSectionTitle(
+                title: 'Health Trends',
+                subtitle: 'Metric over Time (Last ${vitals.length} entries)',
+              ),
+              const SizedBox(height: 16),
+              BPTrendChart(history: reversedHistory),
+              const SizedBox(height: 16),
+              VitalsTrendChart(
+                title: 'Heart Rate (BPM)',
+                history: reversedHistory,
+                valSelector: (e) => e.heartRate?.toDouble() ?? 0,
+                color: Colors.pink,
+              ),
+              const SizedBox(height: 16),
+              VitalsTrendChart(
+                title: 'Weight (kg)',
+                history: reversedHistory,
+                valSelector: (e) => e.weight ?? 0,
+                color: Colors.blue,
+              ),
+              const SizedBox(height: 32),
+              VitalsSectionTitle(
+                title: 'History Log',
+                subtitle: 'Full record of your vital signs',
+                trailing: patient != null
+                    ? null
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.info_outline_rounded,
+                            size: 14,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Slide to edit/delete',
+                            style: AppTextStyles.caption.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) => VitalsHistoryItem(item: vitals[index]),
+            childCount: vitals.length,
+          ),
+        ),
+      ),
+    ];
   }
 
   Widget _buildVitalsGrid(VitalModel latest) {

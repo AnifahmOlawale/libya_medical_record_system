@@ -7,11 +7,13 @@ import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.da
 import 'package:libya_medical_record_system/core/shared/widgets/app_primary_button.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/snack_bar.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/text_field_input_decoration.dart';
-
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 
 class AddMedicationPage extends StatefulWidget {
-  const AddMedicationPage({super.key});
+  const AddMedicationPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   State<AddMedicationPage> createState() => _AddMedicationPageState();
@@ -56,9 +58,12 @@ class _AddMedicationPageState extends State<AddMedicationPage> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Add Medication',
+          SliverPageHeader(
+            title: widget.patient != null
+                ? 'Prescribe for ${widget.patient!.personalInfo!.fullNameEnglish}'
+                : 'Add Medication',
             icon: FontAwesomeIcons.pills,
+            showBackButton: true,
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -92,8 +97,9 @@ class _AddMedicationPageState extends State<AddMedicationPage> {
                                   _buildLabel('Strength'),
                                   TextFormField(
                                     controller: _strengthController,
-                                    decoration:
-                                        fieldDecoration(hint: 'e.g., 500 mg'),
+                                    decoration: fieldDecoration(
+                                      hint: 'e.g., 500 mg',
+                                    ),
                                     validator: (v) => v == null || v.isEmpty
                                         ? 'Required'
                                         : null,
@@ -123,8 +129,9 @@ class _AddMedicationPageState extends State<AddMedicationPage> {
                                         .toList(),
                                     onChanged: (v) =>
                                         setState(() => _selectedForm = v),
-                                    decoration:
-                                        fieldDecoration(hint: 'Select Form'),
+                                    decoration: fieldDecoration(
+                                      hint: 'Select Form',
+                                    ),
                                     validator: (v) =>
                                         v == null ? 'Required' : null,
                                   ),
@@ -150,8 +157,10 @@ class _AddMedicationPageState extends State<AddMedicationPage> {
                               .map(
                                 (e) => DropdownMenuItem(
                                   value: e,
-                                  child:
-                                      Text(e, overflow: TextOverflow.ellipsis),
+                                  child: Text(
+                                    e,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                               )
                               .toList(),
@@ -208,7 +217,8 @@ class _AddMedicationPageState extends State<AddMedicationPage> {
                                         )
                                         .toList(),
                                     onChanged: (v) => setState(
-                                        () => _selectedIntakeMethod = v),
+                                      () => _selectedIntakeMethod = v,
+                                    ),
                                     decoration: fieldDecoration(hint: 'Method'),
                                     validator: (v) =>
                                         v == null ? 'Required' : null,

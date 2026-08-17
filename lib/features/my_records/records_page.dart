@@ -51,6 +51,12 @@ final _records = [
     route: AppRoutes.medications,
   ),
   _RecordCardData(
+    icon: FontAwesomeIcons.tooth,
+    title: 'Dental Records',
+    subtitle: 'Dental history and procedures',
+    route: AppRoutes.dentalRecords,
+  ),
+  _RecordCardData(
     icon: FontAwesomeIcons.stethoscope,
     title: 'Diagnoses',
     subtitle: 'Medical diagnoses history',
@@ -110,9 +116,10 @@ class RecordsPage extends StatelessWidget {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          SliverPageHeader(
+          const SliverPageHeader(
             title: 'Medical Records',
             icon: FontAwesomeIcons.fileMedical,
+            showBackButton: true,
           ),
           SliverToBoxAdapter(
             child: Padding(

@@ -4,36 +4,45 @@ import 'package:go_router/go_router.dart';
 import 'package:libya_medical_record_system/core/router/app_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/empty_state_widget.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
 import 'package:libya_medical_record_system/data/models/diagnosis_model.dart';
-
-import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
 class DiagnosesPage extends StatelessWidget {
-  const DiagnosesPage({super.key});
+  const DiagnosesPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   Widget build(BuildContext context) {
-    final diagnoses = DemoData.diagnoses();
+    final diagnoses = patient != null ? patient!.diagnoses : DemoData.diagnoses();
+    final bool isPatientView = patient != null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Diagnoses History',
+          SliverPageHeader(
+            title: isPatientView ? '${patient!.personalInfo!.fullNameEnglish}\'s Diagnoses' : 'Diagnoses History',
             icon: FontAwesomeIcons.lungsVirus,
+            showBackButton: isPatientView,
           ),
           if (diagnoses.isEmpty)
-            _buildEmptyState()
+            const EmptyStateSliver(
+              icon: FontAwesomeIcons.clipboardCheck,
+              title: 'No Diagnoses Recorded',
+              subtitle: 'Medical diagnoses history will appear here.',
+            )
           else
-            _buildDiagnosesList(diagnoses),
+            _buildDiagnosesList(diagnoses, isPatientView),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.addDiagnosis),
+        onPressed: () => context.push(AppRoutes.addDiagnosis, extra: patient),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: Text(
@@ -44,51 +53,19 @@ class DiagnosesPage extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
-    return SliverFillRemaining(
-      hasScrollBody: false,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FaIcon(
-              FontAwesomeIcons.clipboardCheck,
-              size: 80,
-              color: AppColors.textDisabled.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'No Diagnoses Recorded',
-              style: AppTextStyles.headlineSmall.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Your medical diagnoses history will appear here.',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textDisabled,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDiagnosesList(List<DiagnosisModel> diagnoses) {
+  Widget _buildDiagnosesList(List<DiagnosisModel> diagnoses, bool isPatientView) {
     return SliverPadding(
       padding: const EdgeInsets.all(20),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final diagnosis = diagnoses[index];
-          return _buildDiagnosisCard(context, diagnosis);
+          return _buildDiagnosisCard(context, diagnosis, isPatientView);
         }, childCount: diagnoses.length),
       ),
     );
   }
 
-  Widget _buildDiagnosisCard(BuildContext context, DiagnosisModel diagnosis) {
+  Widget _buildDiagnosisCard(BuildContext context, DiagnosisModel diagnosis, bool isPatientView) {
     Color statusColor;
     String statusLabel;
 
@@ -151,7 +128,7 @@ class DiagnosesPage extends StatelessWidget {
                       child: Text(
                         diagnosis.conditionName,
                         maxLines: 1,
-                        overflow: .ellipsis,
+                        overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.titleMedium.copyWith(
                           color: AppColors.textPrimary,
                           fontWeight: FontWeight.w700,
@@ -196,7 +173,7 @@ class DiagnosesPage extends StatelessWidget {
                           Expanded(
                             child: _buildDetailRow(
                               'Documents',
-                              '${diagnosis.diagnosisDocumentPaths.length} Report(s) Attached',
+                              '${diagnosis.diagnosisDocumentPaths.length} Report(s)',
                               icon: FontAwesomeIcons.filePdf,
                             ),
                           ),
@@ -208,22 +185,6 @@ class DiagnosesPage extends StatelessWidget {
                       diagnosis.diagnosedBy,
                       icon: FontAwesomeIcons.userDoctor,
                     ),
-                    if (diagnosis.symptoms != null) ...[
-                      const SizedBox(height: 16),
-                      _buildDetailRow(
-                        'Symptoms',
-                        diagnosis.symptoms!,
-                        icon: FontAwesomeIcons.notesMedical,
-                      ),
-                    ],
-                    if (diagnosis.treatmentPlan != null) ...[
-                      const SizedBox(height: 16),
-                      _buildDetailRow(
-                        'Treatment Plan',
-                        diagnosis.treatmentPlan!,
-                        icon: FontAwesomeIcons.handHoldingMedical,
-                      ),
-                    ],
                   ],
                 ),
               ),
@@ -243,17 +204,20 @@ class DiagnosesPage extends StatelessWidget {
                         color: AppColors.textDisabled,
                       ),
                     ),
-                    Row(
-                      children: [
-                        _buildActionCircle(Icons.edit_rounded, () {}),
-                        const SizedBox(width: 8),
-                        _buildActionCircle(
-                          Icons.delete_outline_rounded,
-                          () {},
-                          isDelete: true,
-                        ),
-                      ],
-                    ),
+                    if (!isPatientView)
+                      Row(
+                        children: [
+                          _buildActionCircle(Icons.edit_rounded, () {}),
+                          const SizedBox(width: 8),
+                          _buildActionCircle(
+                            Icons.delete_outline_rounded,
+                            () {},
+                            isDelete: true,
+                          ),
+                        ],
+                      )
+                    else
+                      const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.textDisabled),
                   ],
                 ),
               ),
@@ -286,7 +250,7 @@ class DiagnosesPage extends StatelessWidget {
               Text(
                 label,
                 maxLines: 1,
-                overflow: .ellipsis,
+                overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.labelSmall.copyWith(
                   color: AppColors.textSecondary,
                   fontWeight: FontWeight.w600,
@@ -296,7 +260,7 @@ class DiagnosesPage extends StatelessWidget {
               Text(
                 value,
                 maxLines: 1,
-                overflow: .ellipsis,
+                overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.textPrimary,
                   height: 1.4,

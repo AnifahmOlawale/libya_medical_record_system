@@ -7,14 +7,18 @@ import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
 class MedicalInfo extends StatelessWidget {
-  const MedicalInfo({super.key});
+  const MedicalInfo({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   Widget build(BuildContext context) {
-    final userData = DemoData.currentUser();
+    final userData = patient ?? DemoData.currentUser();
     final medicalInfo = userData.medicalInfo;
+    final bool isPatientView = patient != null;
 
     if (medicalInfo == null) {
       return const Scaffold(
@@ -27,9 +31,12 @@ class MedicalInfo extends StatelessWidget {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Medical Information',
+          SliverPageHeader(
+            title: isPatientView
+                ? '${userData.personalInfo!.fullNameEnglish}\'s Info'
+                : 'Medical Information',
             icon: FontAwesomeIcons.fileMedical,
+            showBackButton: isPatientView,
           ),
           SliverPadding(
             padding: const EdgeInsets.all(24),
@@ -109,7 +116,7 @@ class MedicalInfo extends StatelessWidget {
                   _buildStatusTile(
                     label: 'Alcohol Use',
                     value: medicalInfo.alcoholUse,
-                    icon: FontAwesomeIcons.glassWhiskey,
+                    icon: FontAwesomeIcons.whiskeyGlass,
                   ),
                   _buildStatusTile(
                     label: 'Disability Status',

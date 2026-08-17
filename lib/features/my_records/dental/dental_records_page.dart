@@ -8,17 +8,17 @@ import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.da
 import 'package:libya_medical_record_system/core/shared/widgets/empty_state_widget.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
-import 'package:libya_medical_record_system/data/models/immunization_model.dart';
+import 'package:libya_medical_record_system/data/models/dental_record_model.dart';
 import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
-class ImmunizationsPage extends StatelessWidget {
-  const ImmunizationsPage({super.key, this.patient});
+class DentalRecordsPage extends StatelessWidget {
+  const DentalRecordsPage({super.key, this.patient});
 
   final UserRegistrationModel? patient;
 
   @override
   Widget build(BuildContext context) {
-    final immunizations = patient != null ? patient!.immunizations : DemoData.immunizations();
+    final records = patient != null ? patient!.dentalRecords : DemoData.dentalRecords();
     final bool isPatientView = patient != null;
 
     return Scaffold(
@@ -27,46 +27,46 @@ class ImmunizationsPage extends StatelessWidget {
         physics: const BouncingScrollPhysics(),
         slivers: [
           SliverPageHeader(
-            title: isPatientView ? '${patient!.personalInfo!.fullNameEnglish}\'s Immunizations' : 'Immunizations',
-            icon: FontAwesomeIcons.syringe,
+            title: isPatientView ? '${patient!.personalInfo!.fullNameEnglish}\'s Dental' : 'Dental Records',
+            icon: FontAwesomeIcons.tooth,
             showBackButton: isPatientView,
           ),
-          if (immunizations.isEmpty)
+          if (records.isEmpty)
             const EmptyStateSliver(
-              icon: FontAwesomeIcons.shieldVirus,
-              title: 'No records found',
-              subtitle: 'Vaccination records will appear here.',
+              icon: FontAwesomeIcons.tooth,
+              title: 'No Dental Records',
+              subtitle: 'Dental history and procedures will appear here.',
             )
           else
-            _buildImmunizationList(immunizations, isPatientView),
+            _buildRecordsList(records, isPatientView),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.addImmunization, extra: patient),
+        onPressed: () => context.push(AppRoutes.addDentalRecord, extra: patient),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: Text(
-          'Add Vaccination',
+          'Add Record',
           style: AppTextStyles.labelLarge.copyWith(color: Colors.white),
         ),
       ),
     );
   }
 
-  Widget _buildImmunizationList(List<ImmunizationModel> list, bool isPatientView) {
+  Widget _buildRecordsList(List<DentalRecordModel> records, bool isPatientView) {
     return SliverPadding(
       padding: const EdgeInsets.all(20),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
-          final item = list[index];
-          return _buildImmunizationCard(context, item, isPatientView);
-        }, childCount: list.length),
+          final record = records[index];
+          return _buildDentalCard(context, record, isPatientView);
+        }, childCount: records.length),
       ),
     );
   }
 
-  Widget _buildImmunizationCard(BuildContext context, ImmunizationModel item, bool isPatientView) {
+  Widget _buildDentalCard(BuildContext context, DentalRecordModel record, bool isPatientView) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -81,7 +81,7 @@ class ImmunizationsPage extends StatelessWidget {
         ],
       ),
       child: InkWell(
-        onTap: () => context.push(AppRoutes.immunizationDetail, extra: item),
+        onTap: () => context.push(AppRoutes.dentalRecordDetail, extra: record),
         borderRadius: BorderRadius.circular(20),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
@@ -102,38 +102,27 @@ class ImmunizationsPage extends StatelessWidget {
                 child: Row(
                   children: [
                     const FaIcon(
-                      FontAwesomeIcons.shieldVirus,
+                      FontAwesomeIcons.tooth,
                       color: AppColors.primary,
                       size: 16,
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        item.vaccineName,
+                        record.procedure,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.titleMedium.copyWith(
-                          color: AppColors.textPrimary,
+                          color: AppColors.primaryDark,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        item.doseNumber,
-                        style: AppTextStyles.labelSmall.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 10,
-                        ),
+                    Text(
+                      _formatDate(record.date),
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -144,28 +133,21 @@ class ImmunizationsPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildDetailRow(
-                            'Date',
-                            _formatDate(item.dateAdministered),
-                            icon: FontAwesomeIcons.calendarDay,
-                          ),
-                        ),
-                        Expanded(
-                          child: _buildDetailRow(
-                            'Batch',
-                            item.batchNumber ?? 'N/A',
-                            icon: FontAwesomeIcons.barcode,
-                          ),
-                        ),
-                      ],
+                    _buildDetailRow(
+                      'Teeth',
+                      record.selectedTeeth.join(', '),
+                      icon: FontAwesomeIcons.teeth,
                     ),
                     const SizedBox(height: 16),
                     _buildDetailRow(
-                      'Administered By',
-                      item.administeredBy,
+                      'Dentist',
+                      record.doctorName,
+                      icon: FontAwesomeIcons.userDoctor,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildDetailRow(
+                      'Facility',
+                      record.institutionName,
                       icon: FontAwesomeIcons.hospital,
                     ),
                   ],
@@ -181,26 +163,17 @@ class ImmunizationsPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Added by: ${item.addedBy ?? 'N/A'}',
+                      'Added by: ${record.addedBy ?? 'N/A'}',
                       style: AppTextStyles.bodySmall.copyWith(
                         fontSize: 10,
                         color: AppColors.textDisabled,
                       ),
                     ),
-                    if (!isPatientView)
-                      Row(
-                        children: [
-                          _buildActionCircle(Icons.edit_rounded, () {}),
-                          const SizedBox(width: 8),
-                          _buildActionCircle(
-                            Icons.delete_outline_rounded,
-                            () {},
-                            isDelete: true,
-                          ),
-                        ],
-                      )
-                    else
-                      const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.textDisabled),
+                    const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 12,
+                      color: AppColors.textDisabled,
+                    ),
                   ],
                 ),
               ),
@@ -240,8 +213,6 @@ class ImmunizationsPage extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.textPrimary,
                   height: 1.4,
@@ -251,36 +222,6 @@ class ImmunizationsPage extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildActionCircle(
-    dynamic icon,
-    VoidCallback onTap, {
-    bool isDelete = false,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: isDelete
-              ? AppColors.error.withValues(alpha: 0.1)
-              : Colors.grey.shade100,
-          shape: BoxShape.circle,
-        ),
-        child: icon is IconData
-            ? Icon(
-                icon,
-                size: 16,
-                color: isDelete ? AppColors.error : AppColors.textSecondary,
-              )
-            : FaIcon(
-                icon,
-                size: 16,
-                color: isDelete ? AppColors.error : AppColors.textSecondary,
-              ),
-      ),
     );
   }
 

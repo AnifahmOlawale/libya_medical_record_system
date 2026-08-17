@@ -5,36 +5,45 @@ import 'package:intl/intl.dart';
 import 'package:libya_medical_record_system/core/router/app_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/empty_state_widget.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
 import 'package:libya_medical_record_system/data/models/surgery_model.dart';
-
-import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
 class SurgeriesPage extends StatelessWidget {
-  const SurgeriesPage({super.key});
+  const SurgeriesPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   Widget build(BuildContext context) {
-    final surgeries = DemoData.surgeries();
+    final surgeries = patient != null ? patient!.surgeries : DemoData.surgeries();
+    final bool isPatientView = patient != null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Surgical History',
+          SliverPageHeader(
+            title: isPatientView ? '${patient!.personalInfo!.fullNameEnglish}\'s Surgeries' : 'Surgical History',
             icon: FontAwesomeIcons.kitMedical,
+            showBackButton: isPatientView,
           ),
           if (surgeries.isEmpty)
-            _buildEmptyState()
+            const EmptyStateSliver(
+              icon: FontAwesomeIcons.notesMedical,
+              title: 'No Surgeries Recorded',
+              subtitle: 'Surgical procedures will appear here.',
+            )
           else
-            _buildSurgeriesList(surgeries),
+            _buildSurgeriesList(surgeries, isPatientView),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.addSurgery),
+        onPressed: () => context.push(AppRoutes.addSurgery, extra: patient),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: Text(
@@ -45,51 +54,19 @@ class SurgeriesPage extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
-    return SliverFillRemaining(
-      hasScrollBody: false,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FaIcon(
-              FontAwesomeIcons.notesMedical,
-              size: 80,
-              color: AppColors.textDisabled.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'No Surgeries Recorded',
-              style: AppTextStyles.headlineSmall.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Your surgical procedures will appear here.',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textDisabled,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSurgeriesList(List<SurgeryModel> surgeries) {
+  Widget _buildSurgeriesList(List<SurgeryModel> surgeries, bool isPatientView) {
     return SliverPadding(
       padding: const EdgeInsets.all(20),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final surgery = surgeries[index];
-          return _buildSurgeryCard(context, surgery);
+          return _buildSurgeryCard(context, surgery, isPatientView);
         }, childCount: surgeries.length),
       ),
     );
   }
 
-  Widget _buildSurgeryCard(BuildContext context, SurgeryModel surgery) {
+  Widget _buildSurgeryCard(BuildContext context, SurgeryModel surgery, bool isPatientView) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -188,13 +165,6 @@ class SurgeriesPage extends StatelessWidget {
                       surgery.hospitalName,
                       icon: FontAwesomeIcons.hospital,
                     ),
-                    if (surgery.reportPaths.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      _buildAttachmentBadge(
-                        '${surgery.reportPaths.length} Document(s)',
-                        FontAwesomeIcons.fileLines,
-                      ),
-                    ],
                   ],
                 ),
               ),
@@ -208,56 +178,32 @@ class SurgeriesPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Last Updated: ${_formatDate(surgery.lastUpdated)}',
+                      'Added by: ${surgery.addedBy ?? 'N/A'}',
                       style: AppTextStyles.bodySmall.copyWith(
                         fontSize: 10,
                         color: AppColors.textDisabled,
                       ),
                     ),
-                    Row(
-                      children: [
-                        _buildActionCircle(Icons.edit_rounded, () {}),
-                        const SizedBox(width: 8),
-                        _buildActionCircle(
-                          Icons.delete_outline_rounded,
-                          () {},
-                          isDelete: true,
-                        ),
-                      ],
-                    ),
+                    if (!isPatientView)
+                      Row(
+                        children: [
+                          _buildActionCircle(Icons.edit_rounded, () {}),
+                          const SizedBox(width: 8),
+                          _buildActionCircle(
+                            Icons.delete_outline_rounded,
+                            () {},
+                            isDelete: true,
+                          ),
+                        ],
+                      )
+                    else
+                      const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.textDisabled),
                   ],
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildAttachmentBadge(String text, dynamic icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          icon is IconData
-              ? Icon(icon, size: 10, color: AppColors.primary)
-              : FaIcon(icon, size: 10, color: AppColors.primary),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
-              fontSize: 10,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -336,6 +282,6 @@ class SurgeriesPage extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    return DateFormat("dd, MMM yyyy").format(date);
+    return DateFormat("dd MMM, yyyy").format(date);
   }
 }

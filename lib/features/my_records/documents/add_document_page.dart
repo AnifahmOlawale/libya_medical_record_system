@@ -11,11 +11,14 @@ import 'package:libya_medical_record_system/core/shared/widgets/snack_bar.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/text_field_input_decoration.dart';
 import 'package:libya_medical_record_system/data/models/document_model.dart';
 import 'package:libya_medical_record_system/core/constants/document_constants.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 
 class AddDocumentPage extends StatefulWidget {
-  const AddDocumentPage({super.key});
+  const AddDocumentPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   State<AddDocumentPage> createState() => _AddDocumentPageState();
@@ -77,9 +80,12 @@ class _AddDocumentPageState extends State<AddDocumentPage> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Add Document',
+          SliverPageHeader(
+            title: widget.patient != null
+                ? 'Vault: ${widget.patient!.personalInfo!.fullNameEnglish}'
+                : 'Add Document',
             icon: FontAwesomeIcons.fileMedical,
+            showBackButton: true,
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -147,10 +153,9 @@ class _AddDocumentPageState extends State<AddDocumentPage> {
                                       hint: 'Select date',
                                       prefixIcon: FontAwesomeIcons.calendarDay,
                                     ),
-                                    validator: (v) =>
-                                        v == null || v.isEmpty
-                                            ? 'Required'
-                                            : null,
+                                    validator: (v) => v == null || v.isEmpty
+                                        ? 'Required'
+                                        : null,
                                   ),
                                 ],
                               ),
@@ -168,9 +173,9 @@ class _AddDocumentPageState extends State<AddDocumentPage> {
                             ),
                             validator: (v) =>
                                 _selectedCategory == DocumentCategory.other &&
-                                        (v == null || v.isEmpty)
-                                    ? 'Required'
-                                    : null,
+                                    (v == null || v.isEmpty)
+                                ? 'Required'
+                                : null,
                           ),
                         ],
                         const SizedBox(height: 20),

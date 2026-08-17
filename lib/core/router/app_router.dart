@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
+import 'package:libya_medical_record_system/data/models/demo_data.dart';
 import 'package:libya_medical_record_system/data/models/diagnosis_model.dart';
 import 'package:libya_medical_record_system/data/models/radiology_model.dart';
 import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
@@ -15,9 +17,9 @@ import 'package:libya_medical_record_system/features/experts/expert_detail_page.
 import 'package:libya_medical_record_system/features/experts/search_experts_page.dart';
 import 'package:libya_medical_record_system/features/home/clinical_access_entry_page.dart';
 import 'package:libya_medical_record_system/features/home/home_page.dart';
-import 'package:libya_medical_record_system/features/institutions/join_institution_page.dart';
-import 'package:libya_medical_record_system/features/institutions/affiliated_institutions_page.dart';
-import 'package:libya_medical_record_system/features/institutions/institution_requests_page.dart';
+import 'package:libya_medical_record_system/features/institutions/institutional_affiliations_page.dart';
+import 'package:libya_medical_record_system/features/institutions/my_institutions_page.dart';
+import 'package:libya_medical_record_system/features/institutions/owned_institution_detail_page.dart';
 import 'package:libya_medical_record_system/features/my_records/allergies/add_allergy_page.dart';
 import 'package:libya_medical_record_system/features/my_records/allergies/allergies_page.dart';
 import 'package:libya_medical_record_system/features/my_records/allergies/allergy_detail_page.dart';
@@ -33,12 +35,16 @@ import 'package:libya_medical_record_system/features/my_records/documents/add_do
 import 'package:libya_medical_record_system/features/my_records/documents/document_detail_page.dart';
 import 'package:libya_medical_record_system/features/my_records/documents/documents_page.dart';
 import 'package:libya_medical_record_system/data/models/document_model.dart';
+import 'package:libya_medical_record_system/data/models/dental_record_model.dart';
 import 'package:libya_medical_record_system/features/my_records/immunizations/add_immunization_page.dart';
 import 'package:libya_medical_record_system/features/my_records/immunizations/immunization_detail_page.dart';
 import 'package:libya_medical_record_system/features/my_records/immunizations/immunizations_page.dart';
 import 'package:libya_medical_record_system/features/my_records/medical_visits/add_medical_visit_page.dart';
 import 'package:libya_medical_record_system/features/my_records/medical_visits/medical_visit_detail_page.dart';
 import 'package:libya_medical_record_system/features/my_records/medical_visits/medical_visits_page.dart';
+import 'package:libya_medical_record_system/features/my_records/dental/dental_records_page.dart';
+import 'package:libya_medical_record_system/features/my_records/dental/add_dental_record_page.dart';
+import 'package:libya_medical_record_system/features/my_records/dental/dental_record_detail_page.dart';
 import 'package:libya_medical_record_system/features/my_records/records_page.dart';
 import 'package:libya_medical_record_system/features/my_records/vitals/add_vital_page.dart';
 import 'package:libya_medical_record_system/features/my_records/vitals/vitals_page.dart';
@@ -63,6 +69,8 @@ import 'package:libya_medical_record_system/features/my_records/medications/medi
 import 'package:libya_medical_record_system/data/models/medication_model.dart';
 import 'package:libya_medical_record_system/features/my_records/medical_info/edit_medical_info.dart';
 import 'package:libya_medical_record_system/features/my_records/medical_info/medical_info.dart';
+import 'package:libya_medical_record_system/features/patients/my_patients_page.dart';
+import 'package:libya_medical_record_system/features/patients/patient_records_page.dart';
 import 'package:libya_medical_record_system/features/onboarding/onboarding.dart';
 import 'package:libya_medical_record_system/features/profile/medical_staff_user_profile.dart';
 import 'package:libya_medical_record_system/features/profile/professional_experience_page.dart';
@@ -88,18 +96,25 @@ abstract final class AppRoutes {
   static const home = '/dashboard/home';
   static const records = '/dashboard/records';
   static const experts = '/dashboard/experts';
+  static const myPatients = '/dashboard/my-patients';
   static const profile = '/dashboard/profile';
   static const usersProfile = '/profile/users-profile';
   static const medicalStaffProfile = '/profile/medical-staff-profile';
   static const professionalExperience = '/profile/professional-experience';
   static const joinInstitution = '/dashboard/join-institution';
+  static const institutionalAffiliations =
+      '/dashboard/institutional-affiliations';
+  static const myInstitutions = '/dashboard/my-institutions';
+  static const institutionInvites = '/dashboard/institution-invites';
   static const affiliatedInstitutions = '/dashboard/affiliated-institutions';
   static const institutionRequests = '/dashboard/institution-requests';
   static const institutionDetail = '/dashboard/join-institution/detail';
+  static const ownedInstitutionDetail = '/dashboard/my-institutions/detail';
   static const permissions = '/profile/permissions';
   static const editProfile = '/profile/edit-profile-info';
   static const medicalInfo = '/records/medical-info';
   static const expertDetail = '/experts/detail';
+  static const patientRecords = '/patients/:id/records';
   static const vitals = '/records/vitals';
   static const addVital = '/records/vitals/add';
   static const allergies = '/records/allergies';
@@ -134,6 +149,9 @@ abstract final class AppRoutes {
   static const addDocument = '/records/documents/add';
   static const documentDetail = '/records/documents/detail';
   static const editMedicalInfo = '/records/medical-info/edit-medical-info';
+  static const dentalRecords = '/records/dental';
+  static const addDentalRecord = '/records/dental/add';
+  static const dentalRecordDetail = '/records/dental/detail';
   static const clinicalAccessEntry = '/clinical-access/entry';
 }
 
@@ -155,9 +173,7 @@ abstract final class AppRouter {
           child: SplashScreen(
             onComplete: () => context.go(AppRoutes.onboarding),
           ),
-          transitionDuration: const Duration(
-            milliseconds: 500,
-          ), 
+          transitionDuration: const Duration(milliseconds: 500),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },
@@ -175,9 +191,7 @@ abstract final class AppRouter {
         builder: (context, state) => LoginScreen(
           onLoginSuccess: () => context.go(AppRoutes.registrationForm),
           onSignUp: () => context.go(AppRoutes.signup),
-          onForgotPassword: () => context.go(
-            AppRoutes.forgotPassword,
-          ), 
+          onForgotPassword: () => context.go(AppRoutes.forgotPassword),
         ),
       ),
 
@@ -214,6 +228,22 @@ abstract final class AppRouter {
         builder: (context, state) => const RegistrationForm(),
       ),
 
+      // On Mobile: Experts routes are root-level to hide bottom nav.
+      // On Web: They stay inside the shell (see below).
+      if (!kIsWeb) ...[
+        GoRoute(
+          path: AppRoutes.experts,
+          builder: (context, state) => const SearchExpertsPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.expertDetail,
+          builder: (context, state) {
+            final expert = state.extra as UserRegistrationModel;
+            return ExpertDetailPage(expert: expert);
+          },
+        ),
+      ],
+
       //DASHBOARD
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
@@ -246,6 +276,14 @@ abstract final class AppRouter {
               StatefulShellBranch(
                 routes: [
                   GoRoute(
+                    path: AppRoutes.myPatients,
+                    builder: (context, state) => const MyPatientsPage(),
+                  ),
+                ],
+              ),
+              StatefulShellBranch(
+                routes: [
+                  GoRoute(
                     path: AppRoutes.records,
                     builder: (context, state) => const RecordsPage(),
                   ),
@@ -262,16 +300,41 @@ abstract final class AppRouter {
               StatefulShellBranch(
                 routes: [
                   GoRoute(
+                    path: AppRoutes.myInstitutions,
+                    builder: (context, state) {
+                      if (kIsWeb) {
+                        return const MyInstitutionsPage(showHeader: true);
+                      }
+                      return const InstitutionalAffiliationsPage(
+                        initialIndex: 0,
+                      );
+                    },
+                  ),
+                  GoRoute(
                     path: AppRoutes.joinInstitution,
-                    builder: (context, state) => const JoinInstitutionPage(),
+                    builder: (context, state) {
+                      if (kIsWeb) {
+                        return const InstitutionalAffiliationsPage(
+                          initialIndex: 0,
+                        );
+                      }
+                      return const InstitutionalAffiliationsPage(
+                        initialIndex: 1,
+                      );
+                    },
                   ),
                   GoRoute(
-                    path: AppRoutes.affiliatedInstitutions,
-                    builder: (context, state) => const AffiliatedInstitutionsPage(),
-                  ),
-                  GoRoute(
-                    path: AppRoutes.institutionRequests,
-                    builder: (context, state) => const InstitutionRequestsPage(),
+                    path: AppRoutes.institutionInvites,
+                    builder: (context, state) {
+                      if (kIsWeb) {
+                        return const InstitutionalAffiliationsPage(
+                          initialIndex: 2,
+                        );
+                      }
+                      return const InstitutionalAffiliationsPage(
+                        initialIndex: 3,
+                      );
+                    },
                   ),
                 ],
               ),
@@ -285,6 +348,16 @@ abstract final class AppRouter {
               ),
             ],
           ),
+
+          // Expert Detail for Web - stays inside Shell
+          if (kIsWeb)
+            GoRoute(
+              path: AppRoutes.expertDetail,
+              builder: (context, state) {
+                final expert = state.extra as UserRegistrationModel;
+                return ExpertDetailPage(expert: expert);
+              },
+            ),
 
           GoRoute(
             path: AppRoutes.usersProfile,
@@ -302,19 +375,153 @@ abstract final class AppRouter {
           ),
 
           GoRoute(
-            path: AppRoutes.expertDetail,
-            builder: (context, state) {
-              final expert = state.extra as UserRegistrationModel;
-              return ExpertDetailPage(expert: expert);
-            },
-          ),
-
-          GoRoute(
             path: AppRoutes.institutionDetail,
             builder: (context, state) {
               final institution = state.extra as InstitutionModel;
               return InstitutionDetailPage(institution: institution);
             },
+          ),
+
+          GoRoute(
+            path: AppRoutes.ownedInstitutionDetail,
+            builder: (context, state) {
+              final institution = state.extra as InstitutionModel;
+              return OwnedInstitutionDetailPage(institution: institution);
+            },
+          ),
+
+          GoRoute(
+            path: AppRoutes.myPatients,
+            builder: (context, state) => const MyPatientsPage(),
+          ),
+
+          GoRoute(
+            path: AppRoutes.patientRecords,
+            builder: (context, state) {
+              final id = state.pathParameters['id'];
+              final patient = state.extra as UserRegistrationModel? ??
+                  DemoData.patients().firstWhere((p) => p.id == id);
+              return PatientRecordsPage(patient: patient);
+            },
+            routes: [
+              GoRoute(
+                path: 'medical-info',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'];
+                  final patient = state.extra as UserRegistrationModel? ??
+                      DemoData.patients().firstWhere((p) => p.id == id);
+                  return MedicalInfo(patient: patient);
+                },
+              ),
+              GoRoute(
+                path: 'vitals',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'];
+                  final patient = state.extra as UserRegistrationModel? ??
+                      DemoData.patients().firstWhere((p) => p.id == id);
+                  return VitalsPage(patient: patient);
+                },
+              ),
+              GoRoute(
+                path: 'allergies',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'];
+                  final patient = state.extra as UserRegistrationModel? ??
+                      DemoData.patients().firstWhere((p) => p.id == id);
+                  return AllergiesPage(patient: patient);
+                },
+              ),
+              GoRoute(
+                path: 'medications',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'];
+                  final patient = state.extra as UserRegistrationModel? ??
+                      DemoData.patients().firstWhere((p) => p.id == id);
+                  return MedicationsPage(patient: patient);
+                },
+              ),
+              GoRoute(
+                path: 'dental',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'];
+                  final patient = state.extra as UserRegistrationModel? ??
+                      DemoData.patients().firstWhere((p) => p.id == id);
+                  return DentalRecordsPage(patient: patient);
+                },
+              ),
+              GoRoute(
+                path: 'diagnoses',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'];
+                  final patient = state.extra as UserRegistrationModel? ??
+                      DemoData.patients().firstWhere((p) => p.id == id);
+                  return DiagnosesPage(patient: patient);
+                },
+              ),
+              GoRoute(
+                path: 'lab-tests',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'];
+                  final patient = state.extra as UserRegistrationModel? ??
+                      DemoData.patients().firstWhere((p) => p.id == id);
+                  return LabTestsPage(patient: patient);
+                },
+              ),
+              GoRoute(
+                path: 'radiology',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'];
+                  final patient = state.extra as UserRegistrationModel? ??
+                      DemoData.patients().firstWhere((p) => p.id == id);
+                  return RadiologyPage(patient: patient);
+                },
+              ),
+              GoRoute(
+                path: 'visits',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'];
+                  final patient = state.extra as UserRegistrationModel? ??
+                      DemoData.patients().firstWhere((p) => p.id == id);
+                  return MedicalVisitsPage(patient: patient);
+                },
+              ),
+              GoRoute(
+                path: 'pathology',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'];
+                  final patient = state.extra as UserRegistrationModel? ??
+                      DemoData.patients().firstWhere((p) => p.id == id);
+                  return PathologyPage(patient: patient);
+                },
+              ),
+              GoRoute(
+                path: 'surgeries',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'];
+                  final patient = state.extra as UserRegistrationModel? ??
+                      DemoData.patients().firstWhere((p) => p.id == id);
+                  return SurgeriesPage(patient: patient);
+                },
+              ),
+              GoRoute(
+                path: 'immunizations',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'];
+                  final patient = state.extra as UserRegistrationModel? ??
+                      DemoData.patients().firstWhere((p) => p.id == id);
+                  return ImmunizationsPage(patient: patient);
+                },
+              ),
+              GoRoute(
+                path: 'documents',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'];
+                  final patient = state.extra as UserRegistrationModel? ??
+                      DemoData.patients().firstWhere((p) => p.id == id);
+                  return DocumentsPage(patient: patient);
+                },
+              ),
+            ],
           ),
 
           GoRoute(
@@ -329,27 +536,42 @@ abstract final class AppRouter {
 
           GoRoute(
             path: AppRoutes.medicalInfo,
-            builder: (context, state) => const MedicalInfo(),
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return MedicalInfo(patient: patient);
+            },
           ),
 
           GoRoute(
             path: AppRoutes.vitals,
-            builder: (context, state) => const VitalsPage(),
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return VitalsPage(patient: patient);
+            },
           ),
 
           GoRoute(
             path: AppRoutes.addVital,
-            builder: (context, state) => const AddVitalPage(),
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return AddVitalPage(patient: patient);
+            },
           ),
 
           GoRoute(
             path: AppRoutes.allergies,
-            builder: (context, state) => const AllergiesPage(),
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return AllergiesPage(patient: patient);
+            },
           ),
 
           GoRoute(
             path: AppRoutes.addAllergy,
-            builder: (context, state) => const AddAllergyPage(),
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return AddAllergyPage(patient: patient);
+            },
           ),
 
           GoRoute(
@@ -362,12 +584,18 @@ abstract final class AppRouter {
 
           GoRoute(
             path: AppRoutes.medications,
-            builder: (context, state) => const MedicationsPage(),
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return MedicationsPage(patient: patient);
+            },
           ),
 
           GoRoute(
             path: AppRoutes.addMedication,
-            builder: (context, state) => const AddMedicationPage(),
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return AddMedicationPage(patient: patient);
+            },
           ),
 
           GoRoute(
@@ -388,12 +616,18 @@ abstract final class AppRouter {
 
           GoRoute(
             path: AppRoutes.diagnoses,
-            builder: (context, state) => const DiagnosesPage(),
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return DiagnosesPage(patient: patient);
+            },
           ),
 
           GoRoute(
             path: AppRoutes.addDiagnosis,
-            builder: (context, state) => const AddDiagnosisPage(),
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return AddDiagnosisPage(patient: patient);
+            },
           ),
           GoRoute(
             path: AppRoutes.diagnosisDetail,
@@ -405,12 +639,18 @@ abstract final class AppRouter {
 
           GoRoute(
             path: AppRoutes.labTests,
-            builder: (context, state) => const LabTestsPage(),
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return LabTestsPage(patient: patient);
+            },
           ),
 
           GoRoute(
             path: AppRoutes.addLabTest,
-            builder: (context, state) => const AddLabTestPage(),
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return AddLabTestPage(patient: patient);
+            },
           ),
 
           GoRoute(
@@ -423,12 +663,18 @@ abstract final class AppRouter {
 
           GoRoute(
             path: AppRoutes.medicalVisits,
-            builder: (context, state) => const MedicalVisitsPage(),
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return MedicalVisitsPage(patient: patient);
+            },
           ),
 
           GoRoute(
             path: AppRoutes.addMedicalVisit,
-            builder: (context, state) => const AddMedicalVisitPage(),
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return AddMedicalVisitPage(patient: patient);
+            },
           ),
 
           GoRoute(
@@ -441,7 +687,10 @@ abstract final class AppRouter {
 
           GoRoute(
             path: AppRoutes.radiology,
-            builder: (context, state) => const RadiologyPage(),
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return RadiologyPage(patient: patient);
+            },
           ),
 
           GoRoute(
@@ -459,7 +708,10 @@ abstract final class AppRouter {
 
           GoRoute(
             path: AppRoutes.pathology,
-            builder: (context, state) => const PathologyPage(),
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return PathologyPage(patient: patient);
+            },
           ),
 
           GoRoute(
@@ -477,7 +729,10 @@ abstract final class AppRouter {
 
           GoRoute(
             path: AppRoutes.surgeries,
-            builder: (context, state) => const SurgeriesPage(),
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return SurgeriesPage(patient: patient);
+            },
           ),
 
           GoRoute(
@@ -495,7 +750,10 @@ abstract final class AppRouter {
 
           GoRoute(
             path: AppRoutes.immunizations,
-            builder: (context, state) => const ImmunizationsPage(),
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return ImmunizationsPage(patient: patient);
+            },
           ),
 
           GoRoute(
@@ -513,7 +771,10 @@ abstract final class AppRouter {
 
           GoRoute(
             path: AppRoutes.documents,
-            builder: (context, state) => const DocumentsPage(),
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return DocumentsPage(patient: patient);
+            },
           ),
 
           GoRoute(
@@ -532,6 +793,30 @@ abstract final class AppRouter {
           GoRoute(
             path: AppRoutes.editMedicalInfo,
             builder: (context, state) => const EditMedicalInfo(),
+          ),
+
+          GoRoute(
+            path: AppRoutes.dentalRecords,
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return DentalRecordsPage(patient: patient);
+            },
+          ),
+
+          GoRoute(
+            path: AppRoutes.addDentalRecord,
+            builder: (context, state) {
+              final patient = state.extra as UserRegistrationModel?;
+              return AddDentalRecordPage(patient: patient);
+            },
+          ),
+
+          GoRoute(
+            path: AppRoutes.dentalRecordDetail,
+            builder: (context, state) {
+              final record = state.extra as DentalRecordModel;
+              return DentalRecordDetailPage(record: record);
+            },
           ),
 
           GoRoute(

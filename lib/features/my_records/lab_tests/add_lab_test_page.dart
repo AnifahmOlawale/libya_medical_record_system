@@ -10,11 +10,14 @@ import 'package:libya_medical_record_system/core/shared/widgets/app_primary_butt
 import 'package:libya_medical_record_system/core/shared/widgets/snack_bar.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/text_field_input_decoration.dart';
 import 'package:libya_medical_record_system/data/models/lab_test_model.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 
 class AddLabTestPage extends StatefulWidget {
-  const AddLabTestPage({super.key});
+  const AddLabTestPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   State<AddLabTestPage> createState() => _AddLabTestPageState();
@@ -84,9 +87,12 @@ class _AddLabTestPageState extends State<AddLabTestPage> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Add New Lab Test',
+          SliverPageHeader(
+            title: widget.patient != null
+                ? 'Test for ${widget.patient!.personalInfo!.fullNameEnglish}'
+                : 'Add New Lab Test',
             icon: FontAwesomeIcons.flask,
+            showBackButton: true,
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -136,10 +142,9 @@ class _AddLabTestPageState extends State<AddLabTestPage> {
                                       hint: 'Select date',
                                       prefixIcon: FontAwesomeIcons.calendarDay,
                                     ),
-                                    validator: (v) =>
-                                        v == null || v.isEmpty
-                                            ? 'Required'
-                                            : null,
+                                    validator: (v) => v == null || v.isEmpty
+                                        ? 'Required'
+                                        : null,
                                   ),
                                 ],
                               ),
@@ -188,8 +193,9 @@ class _AddLabTestPageState extends State<AddLabTestPage> {
                                   _buildLabel('Result Value'),
                                   TextFormField(
                                     controller: _resultController,
-                                    decoration:
-                                        fieldDecoration(hint: 'e.g., 95'),
+                                    decoration: fieldDecoration(
+                                      hint: 'e.g., 95',
+                                    ),
                                   ),
                                 ],
                               ),
@@ -202,8 +208,9 @@ class _AddLabTestPageState extends State<AddLabTestPage> {
                                   _buildLabel('Unit'),
                                   TextFormField(
                                     controller: _unitController,
-                                    decoration:
-                                        fieldDecoration(hint: 'e.g., mg/dL'),
+                                    decoration: fieldDecoration(
+                                      hint: 'e.g., mg/dL',
+                                    ),
                                   ),
                                 ],
                               ),

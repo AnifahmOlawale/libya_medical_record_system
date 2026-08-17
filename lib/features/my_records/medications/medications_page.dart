@@ -1,39 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:libya_medical_record_system/core/router/app_router.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_colors.dart';
 import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/empty_state_widget.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 import 'package:libya_medical_record_system/data/models/demo_data.dart';
 import 'package:libya_medical_record_system/data/models/medication_model.dart';
-
-import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
 class MedicationsPage extends StatelessWidget {
-  const MedicationsPage({super.key});
+  const MedicationsPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   Widget build(BuildContext context) {
-    final medications = DemoData.medications();
+    final medications = patient != null ? patient!.medications : DemoData.medications();
+    final bool isPatientView = patient != null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'My Medications',
+          SliverPageHeader(
+            title: isPatientView ? '${patient!.personalInfo!.fullNameEnglish}\'s Medications' : 'My Medications',
             icon: FontAwesomeIcons.pills,
+            showBackButton: isPatientView,
           ),
           if (medications.isEmpty)
-            _buildEmptyState()
+            const EmptyStateSliver(
+              icon: FontAwesomeIcons.briefcaseMedical,
+              title: 'No Medications Found',
+              subtitle: 'Medication history will appear here.',
+            )
           else
-            _buildMedicationList(medications),
+            _buildMedicationList(medications, isPatientView),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.addMedication),
+        onPressed: () => context.push(AppRoutes.addMedication, extra: patient),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: Text(
@@ -44,54 +54,19 @@ class MedicationsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
-    return SliverFillRemaining(
-      hasScrollBody: false,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FaIcon(
-              FontAwesomeIcons.briefcaseMedical,
-              size: 80,
-              color: AppColors.textDisabled.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'No Medications Found',
-              style: AppTextStyles.headlineSmall.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Your medication history will appear here.',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textDisabled,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMedicationList(List<MedicationModel> medications) {
+  Widget _buildMedicationList(List<dynamic> medications, bool isPatientView) {
     return SliverPadding(
       padding: const EdgeInsets.all(20),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
-          final medication = medications[index];
-          return _buildMedicationCard(context, medication);
+          final medication = medications[index] as MedicationModel;
+          return _buildMedicationCard(context, medication, isPatientView);
         }, childCount: medications.length),
       ),
     );
   }
 
-  Widget _buildMedicationCard(
-    BuildContext context,
-    MedicationModel medication,
-  ) {
+  Widget _buildMedicationCard(BuildContext context, MedicationModel medication, bool isPatientView) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -106,8 +81,7 @@ class MedicationsPage extends StatelessWidget {
         ],
       ),
       child: InkWell(
-        onTap: () =>
-            context.push(AppRoutes.medicationDetail, extra: medication),
+        onTap: () => context.push(AppRoutes.medicationDetail, extra: medication),
         borderRadius: BorderRadius.circular(20),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
@@ -144,7 +118,6 @@ class MedicationsPage extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -213,14 +186,6 @@ class MedicationsPage extends StatelessWidget {
                       medication.instructions,
                       icon: FontAwesomeIcons.circleInfo,
                     ),
-                    if (medication.addedBy != null) ...[
-                      const SizedBox(height: 16),
-                      _buildDetailRow(
-                        'Prescribed By',
-                        medication.addedBy!,
-                        icon: FontAwesomeIcons.userDoctor,
-                      ),
-                    ],
                   ],
                 ),
               ),
@@ -240,17 +205,20 @@ class MedicationsPage extends StatelessWidget {
                         color: AppColors.textDisabled,
                       ),
                     ),
-                    Row(
-                      children: [
-                        _buildActionCircle(Icons.edit_rounded, () {}),
-                        const SizedBox(width: 8),
-                        _buildActionCircle(
-                          Icons.delete_outline_rounded,
-                          () {},
-                          isDelete: true,
-                        ),
-                      ],
-                    ),
+                    if (!isPatientView)
+                      Row(
+                        children: [
+                          _buildActionCircle(Icons.edit_rounded, () {}),
+                          const SizedBox(width: 8),
+                          _buildActionCircle(
+                            Icons.delete_outline_rounded,
+                            () {},
+                            isDelete: true,
+                          ),
+                        ],
+                      )
+                    else
+                      const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.textDisabled),
                   ],
                 ),
               ),
@@ -337,6 +305,6 @@ class MedicationsPage extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    return DateFormat("dd MMM, yyyy").format(date);
   }
 }

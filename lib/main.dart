@@ -53,3 +53,17 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+
+//flutter build web --base-href "/libya-medical-record-system/"
+
+// flutter clean
+// flutter pub get
+// flutter build web --release --base-href "/libya-medical-record-system/" --pwa-strategy=none
+
+
+//https://anifahm.rf.gd/libya-medical-record-system/
+
+//https://anifahm.com/libya-medical-record-system/
+
+//flutter build web --release --base-href "/libya-medical-record-system/" --no-tree-shake-icons

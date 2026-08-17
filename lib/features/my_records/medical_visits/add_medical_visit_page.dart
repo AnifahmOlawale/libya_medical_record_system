@@ -10,11 +10,14 @@ import 'package:libya_medical_record_system/core/shared/widgets/app_primary_butt
 import 'package:libya_medical_record_system/core/shared/widgets/snack_bar.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/text_field_input_decoration.dart';
 import 'package:libya_medical_record_system/data/models/medical_visit_model.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 
 class AddMedicalVisitPage extends StatefulWidget {
-  const AddMedicalVisitPage({super.key});
+  const AddMedicalVisitPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   State<AddMedicalVisitPage> createState() => _AddMedicalVisitPageState();
@@ -82,9 +85,12 @@ class _AddMedicalVisitPageState extends State<AddMedicalVisitPage> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Add Medical Visit',
+          SliverPageHeader(
+            title: widget.patient != null
+                ? 'Record Visit for ${widget.patient!.personalInfo!.fullNameEnglish}'
+                : 'Add Medical Visit',
             icon: FontAwesomeIcons.notesMedical,
+            showBackButton: true,
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -134,10 +140,9 @@ class _AddMedicalVisitPageState extends State<AddMedicalVisitPage> {
                                       hint: 'Select date',
                                       prefixIcon: FontAwesomeIcons.calendarDay,
                                     ),
-                                    validator: (v) =>
-                                        v == null || v.isEmpty
-                                            ? 'Required'
-                                            : null,
+                                    validator: (v) => v == null || v.isEmpty
+                                        ? 'Required'
+                                        : null,
                                   ),
                                 ],
                               ),
@@ -182,9 +187,9 @@ class _AddMedicalVisitPageState extends State<AddMedicalVisitPage> {
                             ),
                             validator: (v) =>
                                 _selectedType == VisitType.other &&
-                                        (v == null || v.isEmpty)
-                                    ? 'Required'
-                                    : null,
+                                    (v == null || v.isEmpty)
+                                ? 'Required'
+                                : null,
                           ),
                         ],
                       ],

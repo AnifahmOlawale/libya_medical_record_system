@@ -6,6 +6,7 @@ import 'package:libya_medical_record_system/core/shared/theme/app_text_styles.da
 import 'package:libya_medical_record_system/core/shared/widgets/ambient_gradient_background.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/app_primary_button.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/snack_bar.dart';
+import 'package:libya_medical_record_system/core/shared/widgets/text_field_input_decoration.dart';
 
 class ClinicalAccessEntryPage extends StatefulWidget {
   const ClinicalAccessEntryPage({super.key});
@@ -127,14 +128,10 @@ class _ClinicalAccessEntryPageState extends State<ClinicalAccessEntryPage> {
                       // Token Input
                       TextField(
                         controller: _tokenController,
-                        decoration: InputDecoration(
-                          hintText: 'Enter Access Token',
-                          prefixIcon: const Icon(
-                            Icons.key_rounded,
-                            color: AppColors.primary,
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
+                        decoration: fieldDecoration(
+                          hint: 'Enter Access Token',
+                          prefixIcon: Icons.key_rounded,
+                        ).copyWith(
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(18),
                             borderSide: BorderSide.none,

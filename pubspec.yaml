@@ -51,6 +51,7 @@ dependencies:
   flutter_slidable: ^4.0.3
   pretty_qr_code: ^3.6.0
   uuid: ^4.5.1
+  dental_teeth_selector: ^0.0.1
 
 
 dev_dependencies:

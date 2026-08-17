@@ -167,7 +167,7 @@ class ExpertDetailPage extends StatelessWidget {
                 id: workplace.institutionId,
                 name: workplace.institutionName,
                 type: workplace.institutionType,
-                location: workplace.location,
+                municipality: workplace.location,
                 specialization: 'General',
               ),
         );

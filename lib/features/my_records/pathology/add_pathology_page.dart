@@ -10,11 +10,14 @@ import 'package:libya_medical_record_system/core/shared/widgets/app_primary_butt
 import 'package:libya_medical_record_system/core/shared/widgets/snack_bar.dart';
 import 'package:libya_medical_record_system/core/shared/widgets/text_field_input_decoration.dart';
 import 'package:libya_medical_record_system/data/models/pathology_model.dart';
+import 'package:libya_medical_record_system/data/models/user_registration_model.dart';
 
 import 'package:libya_medical_record_system/core/shared/widgets/sliver_page_header.dart';
 
 class AddPathologyPage extends StatefulWidget {
-  const AddPathologyPage({super.key});
+  const AddPathologyPage({super.key, this.patient});
+
+  final UserRegistrationModel? patient;
 
   @override
   State<AddPathologyPage> createState() => _AddPathologyPageState();
@@ -65,7 +68,9 @@ class _AddPathologyPageState extends State<AddPathologyPage> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      debugPrint('Saving pathology record with collection date: $_collectionDate');
+      debugPrint(
+        'Saving pathology record with collection date: $_collectionDate',
+      );
       snackBar(
         context: context,
         message: 'Pathology record saved successfully',
@@ -82,9 +87,12 @@ class _AddPathologyPageState extends State<AddPathologyPage> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverPageHeader(
-            title: 'Add Pathology Study',
+          SliverPageHeader(
+            title: widget.patient != null
+                ? 'Pathology: ${widget.patient!.personalInfo!.fullNameEnglish}'
+                : 'Add Pathology Study',
             icon: FontAwesomeIcons.microscope,
+            showBackButton: true,
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
